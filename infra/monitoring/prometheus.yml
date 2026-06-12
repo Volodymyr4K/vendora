@@ -1,0 +1,18 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - 'alerts.yml'
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['alertmanager:9093']  # Docker service name
+
+scrape_configs:
+  - job_name: 'vendora-bff'
+    static_configs:
+      - targets: ['host.docker.internal:4000']  # BFF runs on port 4000, not 3000!
+    metrics_path: '/metrics'
+    scrape_interval: 10s

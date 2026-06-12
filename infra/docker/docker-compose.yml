@@ -1,0 +1,67 @@
+version: "3.9"
+services:
+  redis:
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+
+  postgres:
+    image: postgres:17-alpine
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: vendora
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: vendora
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U vendora" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  bff:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ../../:/app
+    command: sh -c "corepack enable && pnpm i && pnpm --filter @vendora/bff dev"
+    environment:
+      - PORT=4000
+      - LOG_LEVEL=info
+      - UPSTREAM_MODE=mock
+      - CACHE_MODE=redis
+      - REDIS_URL=redis://redis:6379
+      - CACHE_TTL_SECONDS=60
+      - CACHE_STALE_SECONDS=600
+      - CACHE_SWR_ENABLED=true
+      - METRICS_ENABLED=true
+      - METRICS_ROUTE=/metrics
+      - BREAKER_ENABLED=true
+      - BREAKER_FAILURE_THRESHOLD=5
+      - BREAKER_OPEN_MS=20000
+      - BREAKER_HALFOPEN_MAX=2
+      - IDEMPOTENCY_TTL_SECONDS=86400
+      - ORDER_TTL_SECONDS=604800
+      - ORDER_UPSTREAM_ENABLED=false
+      - DATABASE_URL=postgresql://vendora:password@postgres:5432/vendora
+    depends_on:
+      - redis
+      - postgres
+
+  web:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ../../:/app
+    command: sh -c "corepack enable && pnpm i && pnpm --filter @vendora/web dev"
+    ports:
+      - "3000:3000"
+    environment:
+      - BFF_BASE_URL=http://bff:4000
+      - NEXT_PUBLIC_SITE_URL=http://localhost:3000
+    depends_on:
+      - bff

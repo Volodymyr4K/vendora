@@ -1,0 +1,1105 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Branch {
+  id          String   @id @default(uuid())
+  slug        String
+  cityName    String
+  address     String?
+  phones      String[]
+  isActive    Boolean  @default(true)
+  timezone    String?  // IANA timezone, NULL = inherit from Tenant
+  workingSchedule Json? // Weekly schedule config (SSOT for future)
+  
+  // Scheduled Orders Config
+  isScheduledOrderingEnabled Boolean @default(true)  // Feature toggle
+  minAdvanceMinutes          Int     @default(90)    // Minimum advance time (cooldown)
+  prepTimeMinutes            Int     @default(30)    // Kitchen preparation time
+  slotCapacity               Int     @default(5)     // Max orders per 30-min slot
+  
+  // Delivery config
+  deliveryFee Int      @default(0) // cents
+  freeFrom    Int      @default(0) // cents
+  etaMin      Int      @default(30)
+  etaMax      Int      @default(60)
+  zones       String[]
+  categoryBranches CategoryBranch[]
+  offers          Offer[]   // Phase 4.1: price/availability per branch
+  orders          Order[]   // Phase 4.3: canonical branch reference
+  deliveryConfigFacet DeliveryConfigFacet? // Phase 6.2: optional 1:1 delivery config overlay
+  tenantUserModulePermissions TenantUserModulePermission[] // ACCESS_LEVELS: branchId FK when scopeType=BRANCH
+
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  defaultForTenants Tenant[] @relation("TenantDefaultBranch")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([slug, tenantId])
+  @@unique([tenantId, id]) // Phase 4.1: DB-level tenant scope for Offer composite FK
+  @@index([tenantId])
+}
+
+model Category {
+  id        String    @id @default(uuid())
+  slug      String
+  title     String
+  sortOrder Int       @default(0)
+  isAvailable Boolean @default(true)
+  categoryBranches CategoryBranch[]
+  catalogItems CatalogItem[]
+
+  tenantId  String
+  tenant    Tenant    @relation(fields: [tenantId], references: [id])
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([slug, tenantId])
+  @@unique([tenantId, id]) // Composite FK preflight: CategoryBranch → Category(tenantId, id)
+  @@index([tenantId])
+  @@index([tenantId, sortOrder])
+}
+
+// Phase 1.3: Explicit join table for Category–Branch visibility (tenant-scoped)
+model CategoryBranch {
+  tenantId   String
+  categoryId String
+  branchId   String
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [tenantId, categoryId], references: [tenantId, id], onDelete: Cascade)
+  branch   Branch   @relation(fields: [tenantId, branchId], references: [tenantId, id], onDelete: Cascade)
+
+  @@unique([tenantId, categoryId, branchId])
+  @@index([tenantId])
+  @@index([categoryId])
+  @@index([branchId])
+}
+
+enum CatalogItemBaseType {
+  GOOD
+  SERVICE
+}
+
+enum CatalogItemStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+model CatalogItem {
+  id             String   @id @default(uuid())
+  slug           String
+  categoryId     String
+  category       Category @relation(fields: [categoryId], references: [id])
+  title          String
+  desc           String?
+  baseType       CatalogItemBaseType @default(GOOD)
+  status         CatalogItemStatus  @default(ACTIVE)
+  basePriceCents Int?    // cents; optional at start
+  imageUrl        String?
+  weightG         Int?
+  tenantId        String
+  tenant          Tenant   @relation(fields: [tenantId], references: [id])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  favorites       CustomerFavorite[]
+  nutritionFacet  ItemNutritionFacet?  // Phase 1.4: optional 1:1 under capability "nutrition"
+  allergenFacet   ItemAllergenFacet?   // Phase 5.2: optional 1:1 under capability "allergens"
+  variants        ItemVariant[]        // Phase 2.1: at least one default variant per item
+  catalogItemOptionGroups CatalogItemOptionGroup[]  // Phase 2.2: M:N to OptionGroup (tenant-scoped)
+  attributeValues AttributeValue[]     // Phase 5.1: custom attribute values per item
+
+  @@unique([slug, tenantId])
+  @@unique([tenantId, id]) // Phase 5.1: DB-level tenant scope for AttributeValue composite FK
+  @@index([tenantId])
+  @@index([tenantId, categoryId, status])
+}
+
+// Phase 2.1: ItemVariant — one default per item (partial unique index in raw SQL migration)
+model ItemVariant {
+  id              String   @id @default(uuid())
+  tenantId        String
+  catalogItemId   String
+  sku             String
+  priceDeltaCents Int?
+  isAvailable     Boolean  @default(true)
+  isDefault       Boolean  @default(false)
+  attributes      Json?    // size, color, etc. — canonical keys per project
+  tenant          Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  catalogItem     CatalogItem @relation(fields: [tenantId, catalogItemId], references: [tenantId, id], onDelete: Cascade)
+  orderLines      OrderLine[] // Phase 3.1: lines referencing this variant
+  offers          Offer[]     // Phase 4.1: price/availability per branch
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([tenantId, sku])
+  @@unique([tenantId, id]) // Optional reinforcement: DB-level tenant scope for update by id
+  @@index([tenantId])
+  @@index([catalogItemId])
+}
+
+// Phase 4.1: Offer (BranchListing) — price/availability per branch; one active offer per (branchId, variantId)
+model Offer {
+  id            String   @id @default(uuid())
+  tenantId      String
+  branchId      String
+  variantId     String
+  priceCents    Int      // NOT NULL; single-currency per tenant
+  currency      String   @default("UAH")
+  isAvailable   Boolean  @default(true)
+  stockPolicy   String?  // optional
+  leadTime      Int?     // optional, minutes
+
+  tenant        Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch        Branch      @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  variant       ItemVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  orderLines    OrderLine[] // Phase 4.4: order lines referencing this offer
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([tenantId, branchId, variantId])
+  @@unique([tenantId, id]) // DB-level tenant scope for update/delete by id
+  @@index([tenantId])
+  @@index([branchId])
+  @@index([variantId])
+}
+
+// Phase 2.2: Modifiers — OptionGroup (group of options) and OptionItem (one option with price delta)
+model OptionGroup {
+  id          String   @id @default(uuid())
+  tenantId    String
+  name        String
+  min         Int?     // min options to select
+  max         Int?     // max options to select
+  isRequired  Boolean  @default(false)
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  optionItems OptionItem[]
+  catalogItemOptionGroups CatalogItemOptionGroup[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([tenantId, id]) // Optional reinforcement: DB-level tenant scope for update by id
+  @@index([tenantId])
+}
+
+model OptionItem {
+  id              String   @id @default(uuid())
+  tenantId        String
+  optionGroupId   String
+  name            String
+  priceDeltaCents Int?
+  isDefault       Boolean  @default(false)
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  optionGroup     OptionGroup @relation(fields: [tenantId, optionGroupId], references: [tenantId, id], onDelete: Cascade)
+  orderLineOptions OrderLineOption[] // Phase 3.4
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([tenantId, id]) // Optional reinforcement: DB-level tenant scope for update by id
+  @@index([tenantId])
+  @@index([optionGroupId])
+}
+
+// Phase 2.2: Explicit join table CatalogItem ↔ OptionGroup with tenantId (tenant-safe M:N)
+model CatalogItemOptionGroup {
+  tenantId      String
+  catalogItemId String
+  optionGroupId String
+
+  tenant      Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  catalogItem CatalogItem @relation(fields: [tenantId, catalogItemId], references: [tenantId, id], onDelete: Cascade)
+  optionGroup OptionGroup @relation(fields: [tenantId, optionGroupId], references: [tenantId, id], onDelete: Cascade)
+
+  @@id([tenantId, catalogItemId, optionGroupId])
+  @@index([tenantId])
+  @@index([catalogItemId])
+  @@index([optionGroupId])
+}
+
+// Phase 1.4: First facet — nutrition (capability "nutrition"). One row per catalog item.
+model ItemNutritionFacet {
+  id            String   @id @default(uuid())
+  tenantId      String
+  catalogItemId String   @unique  // 1:1 with CatalogItem per tenant (consistency with ItemAllergenFacet)
+  caloriesKcal  Int?
+  proteinG      Int?
+  fatG          Int?
+  carbsG        Int?
+  tenant        Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  catalogItem   CatalogItem @relation(fields: [tenantId, catalogItemId], references: [tenantId, id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([tenantId, catalogItemId]) // for composite FK
+  @@index([tenantId])
+  @@index([catalogItemId])
+}
+
+// Phase 5.2: Allergens facet (capability "allergens"). One row per catalog item; allergen codes list.
+model ItemAllergenFacet {
+  id            String   @id @default(uuid())
+  tenantId      String
+  catalogItemId String   // 1:1 with CatalogItem per tenant; composite unique below for composite FK
+  allergenCodes String[] @default([])  // e.g. ["gluten", "nuts", "dairy"]
+  tenant        Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  catalogItem   CatalogItem @relation(fields: [tenantId, catalogItemId], references: [tenantId, id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([catalogItemId])  // 1:1 per item globally
+  @@unique([tenantId, catalogItemId])  // for composite FK relation
+  @@index([tenantId])
+  @@index([catalogItemId])
+}
+
+// Phase 5.1: AttributeDefinition — tenant-defined attribute keys (valueType, appliesToBaseTypes, isFilterable)
+enum AttributeValueType {
+  STRING
+  NUMBER
+  BOOL
+  ENUM   // stored in valueString
+  DATE
+}
+
+model AttributeDefinition {
+  id                 String   @id @default(uuid())
+  tenantId           String
+  key                String   // e.g. "allergen", "spice_level"
+  label              String   // display label
+  valueType          AttributeValueType
+  appliesToBaseTypes String[] // e.g. ["GOOD", "SERVICE"]; which CatalogItem.baseType this applies to
+  isFilterable       Boolean  @default(false)
+  isSearchable       Boolean  @default(false)
+
+  tenant          Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  attributeValues AttributeValue[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, key])
+  @@unique([tenantId, id])
+  @@index([tenantId])
+}
+
+// Phase 5.1: AttributeValue — one value per (item, definition); exactly one of value* filled (DB CHECK)
+model AttributeValue {
+  id           String   @id @default(uuid())
+  tenantId     String
+  itemId       String   // CatalogItem.id
+  definitionId String
+  valueString  String?  // for STRING and ENUM (enum stored here)
+  valueNumber  Float?
+  valueBool    Boolean?
+  valueDate    DateTime?
+
+  tenant     Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  catalogItem CatalogItem       @relation(fields: [tenantId, itemId], references: [tenantId, id], onDelete: Cascade)
+  definition  AttributeDefinition @relation(fields: [tenantId, definitionId], references: [tenantId, id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, itemId, definitionId])
+  @@index([tenantId])
+  @@index([itemId])
+  @@index([definitionId])
+  @@index([definitionId, valueString])   // for filterable string/enum
+  @@index([definitionId, valueNumber])   // for filterable number
+  @@index([definitionId, valueBool])     // for filterable bool
+  @@index([definitionId, valueDate])     // for filterable date
+}
+
+model Order {
+  id          String   @id @default(uuid()) 
+  token       String   @unique // public secure token
+  orderId     String   // human readable ID (ORD-...)
+  branchSlug  String   // UI/API display; canonical ref is branchId (Phase 4.3)
+  branchId    String   // Phase 4.3: FK Branch, NOT NULL — canonical location
+  status      String   // created, pending, paid, confirmed, done, cancelled
+  
+  total       Int      // cents
+  currency    String   @default("UAH") // Phase 3.1: single source of truth for order currency
+
+  // Payment truth (V2 Payment Core SSOT)
+  financialStatus OrderFinancialStatus @default(UNPAID)
+  paidAt          DateTime?
+
+  // Phase 4: Extra Fields
+  personCount Int      @default(1)
+  comment     String?
+  requestedDeliveryTime DateTime?
+  fireAt                DateTime? // When kitchen should start cooking (requested - prepTime)
+
+  payload     Json     // Full snapshot of items, customer, delivery, quote
+  
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  branch      Branch   @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  
+  customerId  String?
+  customer    Customer? @relation(fields: [customerId], references: [id])
+
+  orderLines      OrderLine[]      // Phase 3.1: normalized lines (snapshot at creation)
+  orderAdjustments OrderAdjustment[] // Phase 3.2: discounts, delivery_fee, tip (amountCents in Order.currency)
+  fulfillment     Fulfillment?     // Phase 3.3: 1:1 — delivery/pickup/booking, address, slot, status
+  paymentTransactions PaymentTransaction[] // Payment Core
+  paymentCheckoutRequests PaymentCheckoutRequest[] // Payment Core idempotency
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([orderId, tenantId])
+  @@unique([tenantId, token])
+  @@unique([tenantId, id]) // Optional reinforcement: DB-level tenant scope for update by id
+  @@index([tenantId])
+  
+  // Idempotency (Phase 1F)
+  idempotencyKey   String?
+  idempotencyScope String? 
+  @@unique([tenantId, idempotencyScope, idempotencyKey])
+
+  // Optimized for admin stats queries: 
+  // Equality fields (tenantId, branchSlug / branchId) BEFORE range field (createdAt)
+  @@index([tenantId, branchSlug, createdAt(sort: Desc)])
+  @@index([tenantId, branchId, createdAt(sort: Desc)])
+  @@index([tenantId, status])
+  @@index([tenantId, financialStatus])
+}
+
+enum OrderFinancialStatus {
+  UNPAID
+  PAID
+  PARTIALLY_REFUNDED
+  REFUNDED
+  CHARGEBACK
+}
+
+enum PaymentProviderType {
+  MOLLIE
+  MONOBANK
+  LIQPAY
+}
+
+enum PaymentProviderMode {
+  TEST
+  LIVE
+}
+
+enum PaymentProviderStatus {
+  ACTIVE
+  DISABLED
+}
+
+enum PaymentTransactionStatus {
+  INITIATED
+  PENDING
+  PENDING_VERIFICATION
+  PAID
+  PARTIALLY_REFUNDED
+  REFUNDED
+  CHARGEBACK
+  FAILED
+  CANCELLED
+  EXPIRED
+}
+
+enum PaymentEventStatus {
+  RECEIVED
+  UNMATCHED
+  PROCESSED
+  FAILED
+}
+
+model PaymentProvider {
+  id             String               @id @default(uuid())
+  tenantId       String
+  type           PaymentProviderType
+  mode           PaymentProviderMode
+  status         PaymentProviderStatus @default(ACTIVE)
+
+  // Ref to env/vault key; never store secrets in DB.
+  credentialsRef String?
+
+  // Provider-specific non-secret config (can include secret refs / key ids, not raw secrets).
+  config         Json?
+
+  tenant         Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  transactions   PaymentTransaction[]
+  events         PaymentEvent[]
+
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  @@unique([tenantId, type, mode])
+  @@unique([tenantId, id])
+  @@index([tenantId])
+  @@index([tenantId, type, mode])
+}
+
+model PaymentTransaction {
+  id                     String                   @id @default(uuid())
+  tenantId               String
+  orderDbId              String                   // Order.id
+  providerId             String                   // PaymentProvider.id
+
+  externalId             String?                  // provider payment id (invoiceId / tr_* / order_id)
+  checkoutUrl            String?
+
+  status                 PaymentTransactionStatus @default(INITIATED)
+  externalStatus         String?
+
+  amountMinor            Int
+  currency               String
+  currencyExponent       Int
+
+  // Post-paid observation fields (derived from provider API verification).
+  refundedAmountMinor      Int                   @default(0)
+  refundPendingAmountMinor Int                   @default(0)
+
+  paidAt                 DateTime?
+  refundedAt             DateTime?
+  chargebackAt           DateTime?
+
+  // Used for out-of-order handling where provider gives a monotonic timestamp (e.g. monobank modifiedDate).
+  providerLastEventCreatedAt DateTime?
+
+  // Progressive backoff for resync (DB-level throttle).
+  resyncAttempt           Int                     @default(0)
+  nextResyncAt            DateTime?
+
+  // Last known non-PII error state for ops/debug (because BullMQ failed jobs may be removed).
+  lastErrorCode           String?
+  lastErrorAt             DateTime?
+
+  tenant                 Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  order                  Order                   @relation(fields: [orderDbId], references: [id], onDelete: Cascade)
+  provider               PaymentProvider         @relation(fields: [providerId], references: [id], onDelete: Restrict)
+  events                 PaymentEvent[]
+  checkoutRequests       PaymentCheckoutRequest[]
+
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, providerId, externalId])
+  @@index([tenantId])
+  @@index([tenantId, orderDbId])
+  @@index([tenantId, providerId])
+  @@index([tenantId, providerId, status])
+  @@index([tenantId, status, nextResyncAt])
+}
+
+model PaymentEvent {
+  id                    String           @id @default(uuid())
+  tenantId              String
+  providerId            String
+  transactionId         String?
+
+  externalId            String
+  eventId               String?
+  eventType             String?
+  providerEventCreatedAt DateTime?
+
+  payloadHash           String
+  dedupKey              String
+  parsed                Json?
+
+  status                PaymentEventStatus @default(RECEIVED)
+  errorCode             String?
+
+  // Backoff for UNMATCHED processing to avoid provider API spam.
+  unmatchedAttempt      Int              @default(0)
+  unmatchedNextAttemptAt DateTime?
+
+  receivedAt            DateTime         @default(now())
+  processedAt           DateTime?
+
+  tenant                Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  provider              PaymentProvider  @relation(fields: [providerId], references: [id], onDelete: Restrict)
+  transaction           PaymentTransaction? @relation(fields: [transactionId], references: [id], onDelete: SetNull)
+
+  @@unique([tenantId, providerId, dedupKey])
+  @@unique([tenantId, id])
+  @@index([tenantId])
+  @@index([tenantId, providerId, externalId])
+  @@index([tenantId, providerId, status])
+  @@index([status, receivedAt(sort: Desc)])
+  @@index([status, unmatchedNextAttemptAt])
+}
+
+model PaymentCheckoutRequest {
+  id             String   @id @default(uuid())
+  tenantId       String
+  scope          String   // fixed: "payment_checkout"
+  idempotencyKey String
+  requestHash    String
+
+  orderDbId      String
+  providerId     String?
+  transactionId  String
+
+  tenant         Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  order          Order              @relation(fields: [orderDbId], references: [id], onDelete: Cascade)
+  transaction    PaymentTransaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([tenantId, scope, idempotencyKey])
+  @@unique([tenantId, id])
+  @@index([tenantId])
+  @@index([tenantId, orderDbId])
+}
+
+// Phase 3.1: OrderLine — snapshot at order creation (itemTitle, sku, priceCents, currency from Order)
+// Phase 4.4: offerId NOT NULL (canonical); variantId nullable (snapshot/audit only, do not read in business logic)
+model OrderLine {
+  id          String   @id @default(uuid())
+  tenantId    String
+  orderId     String
+  offerId     String   // Phase 4.4: FK Offer, NOT NULL — canonical for price/availability/reports
+  variantId   String?  // Phase 4.4: nullable; snapshot at creation only; do not read in services
+  qty         Int
+  priceCents  Int      // unit price at order time (snapshot)
+  currency    String   // snapshot: must equal Order.currency at creation (write-path only)
+  itemTitle   String   // from CatalogItem.title at order time
+  sku         String?  // from ItemVariant.sku at order time
+
+  tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  order       Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  offer       Offer        @relation(fields: [offerId], references: [id], onDelete: Restrict)
+  variant     ItemVariant? @relation(fields: [variantId], references: [id], onDelete: Restrict)
+  orderLineOptions OrderLineOption[] // Phase 3.4: selected options per line (snapshot)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([orderId])
+  @@index([offerId])
+}
+
+// Phase 3.4: OrderLineOption — selected options per order line (snapshot; currency from Order)
+model OrderLineOption {
+  id                    String   @id @default(uuid())
+  tenantId              String
+  orderLineId           String
+  optionItemId          String
+  qty                   Int      @default(1)
+  priceDeltaCents       Int      // snapshot at order creation
+  optionItemTitleSnapshot String  // option name at order time (for receipt/history)
+
+  tenant      Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  orderLine   OrderLine  @relation(fields: [orderLineId], references: [id], onDelete: Cascade)
+  optionItem  OptionItem @relation(fields: [optionItemId], references: [id], onDelete: Restrict)
+
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@unique([orderLineId, optionItemId])
+  @@index([tenantId])
+  @@index([orderLineId])
+  @@index([optionItemId])
+}
+
+// Phase 3.2: OrderAdjustment — discounts, delivery_fee, tip (amountCents in Order.currency; no currency column)
+model OrderAdjustment {
+  id          String   @id @default(uuid())
+  tenantId    String
+  orderId     String
+  type        String   // discount, delivery_fee, tip, etc.
+  amountCents Int      // in Order.currency (source of truth on Order)
+  label       String?
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([orderId])
+}
+
+// Phase 3.3: Fulfillment — 1:1 with Order (delivery | pickup | booking, address, slot, status)
+model Fulfillment {
+  id             String    @id @default(uuid())
+  tenantId       String
+  orderId        String    @unique // 1:1 with Order
+  type           String    // delivery | pickup | booking
+  address        String?   // address string or null for pickup
+  requestedTime  DateTime? // slot (requested delivery/pickup time)
+  status         String    // e.g. pending, in_progress, fulfilled
+  fulfilledAt    DateTime?
+
+  tenant         Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  order          Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([tenantId])
+  @@index([orderId])
+}
+
+enum BranchesMode {
+  SINGLE
+  MULTI
+}
+
+enum JournalPostStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model Tenant {
+  id        String   @id @default(uuid())
+  slug      String   @unique
+  name      String
+  isActive  Boolean  @default(true)
+  
+  // Feature flag for custom domains
+  customDomainsEnabled Boolean @default(false)
+
+  branchesMode    BranchesMode @default(MULTI)
+  defaultBranchId String?
+  defaultBranch   Branch? @relation("TenantDefaultBranch", fields: [defaultBranchId], references: [id])
+  
+  // Region Config
+  countryCode          String  @default("UA")
+  currency             String  @default("UAH")
+  timezone             String  @default("Europe/Kiev") // IANA timezone identifier
+
+  // Phase 1: Dynamic Features & Settings (JSONB)
+  // Versioned configuration to replace hardcoded flags
+  features Json @default("{\"version\": 1, \"modules\": {}, \"limits\": {}, \"integrations\": {}}")
+  // settings.theme: ThemeV1 (design tokens per tenant); see @vendora/contracts theme-v1
+  settings Json @default("{}")
+  
+  users       User[]
+  tenantUsers TenantUser[] // ACCESS_LEVELS: tenant roles (owner/admin) only via membership
+  tenantUserModulePermissions TenantUserModulePermission[] // ACCESS_LEVELS 1.3: admin permissions per module
+  userCapabilities UserCapability[] // ACCESS_LEVELS 1.3: tenant-scoped capabilities (high-risk actions)
+  customers Customer[]
+  branches  Branch[]
+  catalogItems CatalogItem[]
+  itemNutritionFacets ItemNutritionFacet[]
+  itemAllergenFacets ItemAllergenFacet[]
+  itemVariants ItemVariant[]
+  optionGroups OptionGroup[]
+  optionItems OptionItem[]
+  catalogItemOptionGroups CatalogItemOptionGroup[]
+  orders    Order[]
+  orderLines OrderLine[]
+  orderAdjustments OrderAdjustment[]
+  orderLineOptions OrderLineOption[]
+  fulfillments Fulfillment[]
+  offers       Offer[]
+  categories Category[]
+  categoryBranches CategoryBranch[]
+  journalPosts JournalPost[]
+  customDomains CustomDomain[]
+  customerAddresses CustomerAddress[]
+  customerFavorites CustomerFavorite[]
+  attributeDefinitions AttributeDefinition[]
+  attributeValues AttributeValue[]
+  integrations     Integration[]
+  integrationStates IntegrationState[]
+  externalMappings ExternalMapping[]
+  deliveryConfigFacets DeliveryConfigFacet[] // Phase 6.2
+  paymentProviders PaymentProvider[]
+  paymentTransactions PaymentTransaction[]
+  paymentEvents PaymentEvent[]
+  paymentCheckoutRequests PaymentCheckoutRequest[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model JournalPost {
+  id            String            @id @default(uuid())
+  tenantId      String
+  slug          String
+  status        JournalPostStatus @default(DRAFT)
+  publishedAt   DateTime?
+  coverImageKey String?
+  /// Homepage slot (1..3) for tenant main page; null = not shown.
+  homeSlot      Int?
+
+  tenant        Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  translations  JournalPostTranslation[]
+
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@unique([tenantId, slug])
+  @@index([tenantId, homeSlot])
+  @@index([tenantId, status, publishedAt])
+  @@index([tenantId, updatedAt])
+  @@index([tenantId])
+}
+
+model JournalPostTranslation {
+  id       String      @id @default(uuid())
+  postId   String
+  locale   String
+  title    String
+  excerpt  String?
+  markdown String
+
+  post      JournalPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@unique([postId, locale])
+  @@index([postId])
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String   // Hashed
+  role      String   @default("admin") // "admin", "staff", "SUPER_ADMIN"
+
+  tenantId  String?  // Optional for SUPER_ADMIN users
+  tenant    Tenant?  @relation(fields: [tenantId], references: [id])
+  tenantMemberships TenantUser[] // ACCESS_LEVELS: tenant role (TENANT_OWNER/TENANT_ADMIN) from here only
+  modulePermissions TenantUserModulePermission[] // ACCESS_LEVELS 1.3: per-module view/edit (for TENANT_ADMIN)
+  userCapabilities UserCapability[] // ACCESS_LEVELS 1.3: tenant-scoped capabilities
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Index for optimizing User lookups in domain verification cron
+  // Prevents N+1 queries when fetching admin users for notifications
+  @@index([tenantId, role])
+}
+
+// ACCESS_LEVELS Phase 1.1: tenant roles only via membership (not User.role for tenant users)
+enum TenantUserRole {
+  TENANT_OWNER
+  TENANT_ADMIN
+}
+
+model TenantUser {
+  id        String        @id @default(uuid())
+  tenantId  String
+  userId    String
+  role      TenantUserRole
+
+  tenant    Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  tenantUserModulePermissions TenantUserModulePermission[] // ACCESS_LEVELS: composite FK from permissions
+  userCapabilityMemberships UserCapability[] // ACCESS_LEVELS: composite FK from capabilities
+
+  @@unique([tenantId, userId])
+  @@index([tenantId])
+  @@index([userId])
+}
+
+// ACCESS_LEVELS Phase 1.3: admin permissions (module view/edit) + scope for future branch-scope
+enum PermissionScopeType {
+  ALL
+  BRANCH
+}
+
+model TenantUserModulePermission {
+  id        String              @id @default(uuid())
+  tenantId  String
+  userId    String
+  moduleId  String              // canonical moduleId (e.g. admin.orders)
+  canView   Boolean
+  canEdit   Boolean
+  scopeType PermissionScopeType  @default(ALL)
+  branchId  String?             // only when scopeType = BRANCH; v1 uses ALL only; FK Branch.id when set
+
+  tenant    Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenantUserMembership TenantUser @relation(fields: [tenantId, userId], references: [tenantId, userId], onDelete: Cascade)
+  branch    Branch?             @relation(fields: [branchId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+
+  // CHECK scopeType↔branchId enforced in migration. Unique by partial indexes in migration.
+  @@index([tenantId])
+  @@index([userId])
+  @@index([tenantId, userId, moduleId])
+}
+
+// ACCESS_LEVELS Phase 1.3: capabilities (high-risk actions) — separate from module view/edit
+model UserCapability {
+  id           String   @id @default(uuid())
+  tenantId     String
+  userId       String
+  capabilityId String   // e.g. admin.orders.refund
+
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenantUserMembership TenantUser @relation(fields: [tenantId, userId], references: [tenantId, userId], onDelete: Cascade)
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([tenantId, userId, capabilityId])
+  @@index([tenantId])
+  @@index([userId])
+}
+
+// Domain status enum for type-safe status management
+enum DomainStatus {
+  PENDING
+  VERIFIED
+  FAILED
+}
+
+model CustomDomain {
+  id        String   @id @default(uuid())
+  domain    String   @unique // Normalized domain (lowercase, punycode)
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  // Verification state machine
+  status    DomainStatus @default(PENDING) // PENDING → VERIFIED | FAILED
+  verifiedAt DateTime?
+  verifiedBy String? // "auto" | "manual" | "admin_override"
+  
+  // DNS verification (ownership proof)
+  txtRecord  String   // Generated HMAC-SHA256 verification code
+  cnameValid Boolean  @default(false) // CNAME points to our infrastructure
+  httpVerified Boolean @default(false) // HTTP token verification (Cloudflare proxy fallback)
+  
+  // Infrastructure provider integration
+  providerDomainId String? // Vercel/Cloudflare domain ID (from their API)
+  
+  // Re-verification safety (grace period)
+  failureCount Int @default(0) // DNS verification failure counter
+  lastFailureAt DateTime? // Last verification failure timestamp
+  
+  // Phase 8: Background job tracking
+  lastVerifiedAt       DateTime? // Last successful re-verification  
+  gracePeriodStartedAt DateTime? // When grace period started (cleared on success)
+  
+  // Domain configuration
+  isPrimary  Boolean  @default(true) // Primary vs alias (www/apex)
+  isWildcard Boolean  @default(false) // Wildcard domain support (*.example.com)
+  provider   String?  @default("vercel") // Infrastructure provider: vercel | cloudflare | custom
+  cnameTarget String? // Custom CNAME override (for provider = "custom")
+  
+  // Audit trail
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  
+  
+  @@index([domain])
+  @@index([tenantId])
+  @@index([status])
+  @@index([tenantId, status])
+  @@index([tenantId, isPrimary])
+  @@index([status, failureCount]) // For cron job query optimization
+  @@index([gracePeriodStartedAt]) // For grace period expiry checks
+  @@index([lastVerifiedAt]) // For re-verification scheduling
+}
+
+// ============================================
+// PHASE 11: CUSTOMER MODULE
+// ============================================
+
+model Customer {
+  id        String   @id @default(uuid())
+  phone     String   // E.164 Format e.g., +380... (Normalized)
+  name      String?
+  email     String?  // Optional contact email
+  
+  // Track last visited branch for quick navigation (updated on order creation)
+  lastVisitedBranchSlug String?
+  
+  isVerified Boolean @default(false)
+  otpCode    String? // Temporary storage for OTP (or use Redis)
+  otpExpires DateTime?
+
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  
+  addresses CustomerAddress[]
+  orders    Order[]
+  favorites CustomerFavorite[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Multi-tenancy: One phone can be a distinct customer in different tenants
+  @@unique([phone, tenantId])
+  @@index([tenantId])
+}
+
+model CustomerAddress {
+  id         String   @id @default(uuid())
+  
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  
+  tenantId   String
+  tenant     Tenant   @relation(fields: [tenantId], references: [id])
+  
+  // Structured Address
+  city       String
+  street     String
+  house      String
+  flat       String?
+  entrance   String?
+  floor      String?
+  code       String?
+  
+  comment    String?
+  label      String? // "Home", "Work", etc.
+  
+  lat        Float?
+  lng        Float?
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([tenantId, customerId])
+  @@index([tenantId, customerId, createdAt(sort: Desc)])
+}
+
+model CustomerFavorite {
+  customerId   String
+  customer     Customer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  catalogItemId String
+  catalogItem   CatalogItem @relation(fields: [catalogItemId], references: [id], onDelete: Cascade)
+  tenantId     String
+  tenant       Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+
+  @@unique([tenantId, customerId, catalogItemId])
+  @@index([tenantId])
+  @@index([tenantId, customerId])
+}
+
+enum OutboxStatus {
+  PENDING
+  PROCESSING
+  SENT
+  DEAD
+}
+
+model EventOutbox {
+  id            String       @id @default(uuid())
+  eventType     String
+  payload       Json
+  status        OutboxStatus @default(PENDING)
+  attempts      Int          @default(0)
+  lastError     String?
+  nextAttemptAt DateTime     @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, nextAttemptAt])
+}
+
+// Phase 6.1: Integration — connection to external provider (POS/ERP); credentials ref only, not stored in DB
+enum IntegrationStatus {
+  PENDING
+  ACTIVE
+  ERROR
+  DISABLED
+}
+
+model Integration {
+  id             String           @id @default(uuid())
+  tenantId       String
+  provider       String           // e.g. "pos_abc", "erp_xyz"
+  credentialsRef String?          // ref to env/vault key; not the secret itself
+  status         IntegrationStatus @default(PENDING)
+
+  tenant           Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  integrationStates IntegrationState[]
+  externalMappings  ExternalMapping[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, provider])
+  @@unique([tenantId, id])
+  @@index([tenantId])
+}
+
+// Phase 6.1: IntegrationState — one record per (tenantId, provider, entityType); cursor/snapshot in JSON
+model IntegrationState {
+  id         String   @id @default(uuid())
+  tenantId   String
+  provider   String
+  entityType String   // required; part of lock key; e.g. "order", "catalog_item", "_global"
+  cursor     Json?    // lastSyncAt, cursors, etc.
+
+  tenant     Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  integration Integration @relation(fields: [tenantId, provider], references: [tenantId, provider], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, provider, entityType])
+  @@index([tenantId])
+}
+
+// Phase 6.1: ExternalMapping — external id ↔ internal id (1:1); no FK on internalId (polymorphic per entityType)
+model ExternalMapping {
+  id          String @id @default(uuid())
+  tenantId    String
+  provider    String
+  entityType  String
+  externalId  String
+  internalId  String
+
+  tenant     Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  integration Integration @relation(fields: [tenantId, provider], references: [tenantId, provider], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, provider, entityType, externalId])
+  @@unique([tenantId, provider, entityType, internalId])
+  @@index([tenantId])
+}
+
+// Phase 6.2: DeliveryConfigFacet — 1:1 with Branch; optional overlay for delivery/slots (zones, fees, eta, slotCapacity)
+model DeliveryConfigFacet {
+  id                 String   @id @default(uuid())
+  tenantId           String
+  branchId           String
+  deliveryFee        Int      @default(0)   // cents
+  freeFrom           Int      @default(0)    // cents
+  etaMin             Int      @default(30)
+  etaMax             Int      @default(60)
+  zones              String[] @default([])
+  minAdvanceMinutes  Int      @default(90)
+  prepTimeMinutes    Int      @default(30)
+  slotCapacity       Int      @default(5)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch Branch @relation(fields: [tenantId, branchId], references: [tenantId, id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, branchId])
+  @@index([tenantId])
+}

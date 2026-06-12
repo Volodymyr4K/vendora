@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: bff-allow-from-web
+  namespace: vendora
+spec:
+  policyTypes:
+    - Ingress
+  podSelector:
+    matchLabels:
+      app: vendora-bff
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: vendora-web
+      ports:
+        - protocol: TCP
+          port: 4000

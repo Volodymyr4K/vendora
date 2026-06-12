@@ -1,0 +1,42 @@
+{
+    "name": "@vendora/database",
+    "version": "0.1.0",
+    "private": true,
+    "type": "module",
+    "prisma": {
+        "seed": "tsx --env-file=.env prisma/seed.ts"
+    },
+    "main": "dist/src/index.js",
+    "types": "dist/src/index.d.ts",
+    "scripts": {
+        "build": "tsc -p tsconfig.json",
+        "db:push": "prisma db push",
+        "db:studio": "prisma studio",
+        "db:seed": "tsx --env-file=.env prisma/seed.ts",
+        "db:seed:berlin": "tsx --env-file=.env prisma/seed-berlin.ts",
+        "db:migrate:deploy": "prisma migrate deploy",
+        "db:import:journal:amcontent": "tsx --env-file=.env scripts/import-journal-from-amcontent.ts",
+        "test:isolation": "pnpm db:migrate:deploy && tsx --env-file=.env scripts/isolation-test.ts",
+        "check:default-variant": "tsx --env-file=.env scripts/check-default-variant.ts",
+        "clear:branch-tz": "tsx --env-file=.env scripts/clear-branch-timezones.ts",
+        "test": "pnpm test:isolation",
+        "postinstall": "prisma generate",
+        "lint": "eslint .",
+        "typecheck": "tsc --noEmit"
+    },
+    "dependencies": {
+        "@prisma/client": "6.1.0",
+        "bcryptjs": "^3.0.3",
+        "prisma": "6.1.0"
+    },
+    "devDependencies": {
+        "@vendora/contracts": "workspace:*",
+        "@eslint/js": "^9.39.2",
+        "@types/node": "22.10.2",
+        "@typescript-eslint/eslint-plugin": "^7.0.0",
+        "@typescript-eslint/parser": "^7.0.0",
+        "eslint": "^9.39.2",
+        "tsx": "latest",
+        "typescript": "5.9.3"
+    }
+}

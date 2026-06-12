@@ -1,0 +1,36 @@
+{
+    "name": "@vendora/tenant-resolver",
+    "version": "0.0.1",
+    "type": "module",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js",
+            "require": "./dist/index.cjs"
+        },
+        "./dns": {
+            "types": "./dist/dns.d.ts",
+            "import": "./dist/dns.js",
+            "require": "./dist/dns.cjs"
+        }
+    },
+    "types": "./dist/index.d.ts",
+    "scripts": {
+        "build": "tsup",
+        "dev": "tsup --watch",
+        "lint": "eslint .",
+        "typecheck": "tsc --noEmit"
+    },
+    "dependencies": {
+        "punycode.js": "^2.3.1"
+    },
+    "devDependencies": {
+        "@eslint/js": "^9.39.2",
+        "@types/node": "^20.11.0",
+        "@typescript-eslint/eslint-plugin": "^7.0.0",
+        "@typescript-eslint/parser": "^7.0.0",
+        "eslint": "^9.39.2",
+        "tsup": "^8.0.0",
+        "typescript": "^5.3.3"
+    }
+}

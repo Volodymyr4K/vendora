@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vendora-web
+  namespace: vendora
+  labels:
+    track: stable
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: vendora-web
+      track: stable
+  template:
+    metadata:
+      labels:
+        app: vendora-web
+        track: stable
+    spec:
+      containers:
+        - name: web
+          image: vendora/web:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          env:
+            - name: BFF_BASE_URL
+              value: "http://vendora-bff:4000"
+            - name: NEXT_PUBLIC_SITE_URL
+              value: "https://vendora.example"
+          readinessProbe:
+            httpGet:
+              path: /choose-city
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /choose-city
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "700m"
+              memory: "768Mi"

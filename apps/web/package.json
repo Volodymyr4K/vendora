@@ -1,0 +1,48 @@
+{
+  "name": "@vendora/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start -p 3000",
+    "lint": "eslint .",
+    "test": "playwright test",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck:test": "tsc -p tsconfig.test.json --noEmit",
+    "perf:lighthouse": "lhci autorun --config=./lighthouserc.json"
+  },
+  "dependencies": {
+    "@vendora/contracts": "workspace:*",
+    "@vendora/shared": "workspace:*",
+    "next": "16.1.1",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "server-only": "^0.0.1"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.3",
+    "@eslint/js": "^9.39.2",
+    "@lhci/cli": "0.14.0",
+    "@playwright/test": "1.57.0",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "@vitejs/plugin-react": "^5.1.2",
+    "autoprefixer": "^10.4.23",
+    "eslint": "9.39.2",
+    "eslint-config-next": "16.1.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "jsdom": "^27.4.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.0",
+    "typescript": "5.9.3",
+    "vitest": "2.1.9"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

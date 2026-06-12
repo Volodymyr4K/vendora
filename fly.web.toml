@@ -1,0 +1,18 @@
+app = "vendora-web"
+
+[build]
+  dockerfile = "apps/web/Dockerfile"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+[[http_service.checks]]
+  interval = "30s"
+  timeout = "10s"
+  grace_period = "60s"
+  method = "GET"
+  path = "/healthz"

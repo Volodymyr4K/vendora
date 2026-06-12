@@ -1,0 +1,39 @@
+{
+  "name": "vendora",
+  "private": true,
+  "packageManager": "pnpm@9.15.2",
+  "scripts": {
+    "dev": "pnpm -r dev",
+    "dev:all": "concurrently -k -n \"INFRA,BFF,WEB\" -c \"blue,magenta,green\" \"docker-compose -f infra/docker/docker-compose.yml up redis postgres\" \"wait-on tcp:5432 tcp:6379 && pnpm --filter @vendora/bff dev\" \"wait-on tcp:4000 && pnpm --filter @vendora/web dev\"",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "format": "prettier -w .",
+    "ci": "pnpm -r build && pnpm --filter @vendora/bff test && pnpm e2e:ci && pnpm perf:ci",
+    "perf:web": "pnpm --filter @vendora/web perf:lighthouse",
+    "e2e:ci": "node scripts/run-e2e.mjs",
+    "perf:ci": "node scripts/run-lhci.mjs",
+    "bff:probe": "pnpm --filter @vendora/bff probe",
+    "bff:capture": "pnpm --filter @vendora/bff capture",
+    "smoke:tenant:create": "DATABASE_URL=postgresql://vendora:password@localhost:5432/vendora pnpm --filter @vendora/database exec node scripts/create-smoke-tenant.mjs",
+    "check:legacy-hours": "node scripts/check-legacy-working-hours.mjs",
+    "check:legacy-hours:selftest": "node scripts/check-legacy-working-hours-selftest.mjs",
+    "guardrails:themes": "node scripts/guardrails/themes.mjs",
+    "guardrails:themes:self-check": "node scripts/guardrails/themes-self-check.mjs",
+    "verify": "pnpm --filter \"./packages/**\" build && pnpm check:legacy-hours && pnpm --filter @vendora/bff smoke:upstream:http && pnpm -r typecheck && pnpm --filter @vendora/web typecheck:test && pnpm -r lint && pnpm guardrails:themes && pnpm --filter @vendora/bff test && pnpm --filter @vendora/bff check:tenant-prisma && pnpm --filter @vendora/bff check:orderline-variant && pnpm --filter @vendora/database test:isolation && pnpm --filter @vendora/database check:default-variant"
+  },
+  "devDependencies": {
+    "@lhci/cli": "0.14.0",
+    "@types/luxon": "^3.7.1",
+    "concurrently": "^9.2.1",
+    "eslint": "9.39.2",
+    "prettier": "3.7.4",
+    "tsx": "^4.21.0",
+    "typescript": "5.9.3",
+    "wait-on": "^9.0.3"
+  },
+  "dependencies": {
+    "luxon": "^3.7.2",
+    "zod": "^4.3.5"
+  }
+}

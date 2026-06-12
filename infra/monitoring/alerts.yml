@@ -1,0 +1,53 @@
+groups:
+  - name: vendora-bff-alerts
+    interval: 30s
+    rules:
+      # High Error Rate
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.05
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High error rate detected"
+          description: "{{ $labels.tenant_id }} has {{ $value | humanizePercentage }} error rate"
+
+      # Slow Checkout
+      - alert: SlowCheckout
+        expr: histogram_quantile(0.95, rate(checkout_duration_seconds_bucket[5m])) > 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Checkout P95 > 5s"
+          description: "Checkout duration P95 is {{ $value }}s"
+
+      # Cache Degradation
+      - alert: LowCacheHitRate
+        expr: rate(cache_hits_total{hit="true"}[5m]) / rate(cache_hits_total[5m]) < 0.7
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Cache hit rate < 70%"
+          description: "Cache hit rate is {{ $value | humanizePercentage }}"
+
+      # Event Bus Failures
+      - alert: EventBusFailures
+        expr: rate(eventbus_published_total{success="false"}[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Event bus publishing failing"
+          description: "Event bus failure rate: {{ $value | humanizePercentage }}"
+
+      # Service Down
+      - alert: ServiceDown
+        expr: up{job="vendora-bff"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "BFF service is down"
+          description: "vendora-bff has been down for more than 1 minute"

@@ -1,0 +1,37 @@
+# dependencies
+node_modules
+.pnpm-store
+
+# next
+.next
+out
+
+# env / secrets
+.env
+.env.*
+!.env.example
+!.env.example.*
+
+# logs
+*.log
+
+# build
+dist
+build
+coverage
+*.tsbuildinfo
+
+# test artifacts
+**/playwright-report/
+**/test-results/
+**/lint-results.json
+
+# local data
+infra/docker/pgdata/
+**/.local-media/
+*.dump
+backups/
+.ops-backups/
+
+# misc
+.DS_Store

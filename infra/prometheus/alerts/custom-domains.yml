@@ -1,0 +1,83 @@
+groups:
+  - name: custom_domains
+    interval: 30s
+    rules:
+      # High DNS failure rate
+      - alert: HighDNSFailureRate
+        expr: |
+          (
+            rate(domain_verifications_total{status="failure"}[5m]) /
+            rate(domain_verifications_total[5m])
+          ) > 0.2
+        for: 5m
+        labels:
+          severity: warning
+          component: custom_domains
+        annotations:
+          summary: "High DNS verification failure rate"
+          description: "{{ $value | humanizePercentage }} of domain verifications are failing (threshold: 20%)"
+          runbook: "https://docs.vendora.com/runbooks/dns-failures"
+
+      # Domains stuck in grace period
+      - alert: DomainsInGracePeriod
+        expr: count(domain_grace_period_gauge > 0) > 10
+        for: 1h
+        labels:
+          severity: info
+          component: custom_domains
+        annotations:
+          summary: "{{ $value }} domains in grace period"
+          description: "Multiple domains failing DNS verification. Check DNS provider status."
+
+      # Cron job not running
+      - alert: DomainVerificationCronStalled
+        expr: |
+          time() - last_verification_timestamp > 7200
+        for: 15m
+        labels:
+          severity: critical
+          component: custom_domains
+        annotations:
+          summary: "Domain verification cron hasn't run in 2+ hours"
+          description: "Last run: {{ $value | humanizeDuration }} ago. Check BFF logs and Redis locks."
+          runbook: "https://docs.vendora.com/runbooks/cron-stalled"
+
+      # Cache hit rate too low
+      - alert: LowCacheHitRate
+        expr: |
+          (
+            rate(cache_hits_total[5m]) /
+            (rate(cache_hits_total[5m]) + rate(cache_misses_total[5m]))
+          ) < 0.7
+        for: 10m
+        labels:
+          severity: warning
+          component: cache
+        annotations:
+          summary: "Domain cache hit rate below 70%"
+          description: "Current hit rate: {{ $value | humanizePercentage }}. Check Redis health and cache warming."
+
+      # Too many failed domains
+      - alert: HighFailedDomainCount
+        expr: count(domain_status_gauge{status="failed"}) > 50
+        for: 30m
+        labels:
+          severity: warning
+          component: custom_domains
+        annotations:
+          summary: "{{ $value }} domains in FAILED status"
+          description: "Large number of failed domains. Investigate DNS verification issues."
+
+      # Domain resolution latency high
+      - alert: HighDomainResolutionLatency
+        expr: |
+          histogram_quantile(0.95, 
+            rate(domain_resolution_duration_seconds_bucket[5m])
+          ) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+          component: performance
+        annotations:
+          summary: "p95 domain resolution latency > 100ms"
+          description: "Current p95: {{ $value }}s. Check database indexes and cache performance."

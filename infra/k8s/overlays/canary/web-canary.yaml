@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vendora-web-canary
+  namespace: vendora
+  labels:
+    track: canary
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vendora-web
+      track: canary
+  template:
+    metadata:
+      labels:
+        app: vendora-web
+        track: canary
+    spec:
+      containers:
+        - name: web
+          image: vendora/web:canary
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: BFF_BASE_URL
+              value: "http://vendora-bff:4000"
+            - name: NEXT_PUBLIC_SITE_URL
+              value: "https://vendora.example"

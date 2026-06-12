@@ -1,0 +1,7 @@
+app = "vendora-bff"
+
+[build]
+  dockerfile = "apps/bff/Dockerfile"
+
+# NOTE: Intentionally no `[http_service]` / public services.
+# `vendora-bff` is internal-only and is reachable only via Fly private networking (`*.internal`).

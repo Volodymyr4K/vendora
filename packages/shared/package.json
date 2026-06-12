@@ -1,0 +1,27 @@
+{
+  "name": "@vendora/shared",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
+    "lint": "echo \"(shared) lint: skip\"",
+    "test": "echo \"(shared) test: skip\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "hast-util-sanitize": "^5.0.2",
+    "rehype-sanitize": "^6.0.0",
+    "rehype-stringify": "^10.0.1",
+    "remark-gfm": "^4.0.0",
+    "remark-parse": "^11.0.0",
+    "remark-rehype": "^11.1.2",
+    "unified": "^11.0.5"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  }
+}

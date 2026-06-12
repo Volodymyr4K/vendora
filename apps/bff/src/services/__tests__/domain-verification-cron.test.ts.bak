@@ -1,0 +1,287 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { prisma } from '@vendora/database';
+import { verifyDomain } from '../dns-lookup';
+
+// Mock the DNS lookup service
+vi.mock('../dns-lookup', async () => {
+    const actual = await vi.importActual('../dns-lookup');
+    return {
+        ...actual,
+        verifyDomain: vi.fn()
+    };
+});
+
+// Mock email and Slack services
+vi.mock('../email', () => ({
+    sendDomainVerificationFailedEmail: vi.fn(),
+    sendDomainDisabledEmail: vi.fn()
+}));
+
+vi.mock('../slack', () => ({
+    sendDomainFailureAlert: vi.fn(),
+    sendDomainDisabledAlert: vi.fn()
+}));
+
+describe('Domain Verification Cron Job Logic', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    describe('Domain Query', () => {
+        it('should fetch VERIFIED and PENDING domains for re-verification', async () => {
+            // Create test domains
+            const tenant = await prisma.tenant.create({
+                data: {
+                    name: 'Test Tenant',
+                    slug: 'test-tenant'
+                }
+            });
+
+            await prisma.customDomain.create({
+                data: {
+                    domain: 'verified.com',
+                    status: 'verified',
+                    tenantId: tenant.id,
+                    txtRecord: 'vendora-verify=test1'
+                }
+            });
+
+            await prisma.customDomain.create({
+                data: {
+                    domain: 'pending.com',
+                    status: 'pending',
+                    tenantId: tenant.id,
+                    txtRecord: 'vendora-verify=test2'
+                }
+            });
+
+            await prisma.customDomain.create({
+                data: {
+                    domain: 'failed.com',
+                    status: 'failed',
+                    tenantId: tenant.id,
+                    txtRecord: 'vendora-verify=test3'
+                }
+            });
+
+            // Query domains that should be re-verified (same as cron job)
+            const domainsToVerify = await prisma.customDomain.findMany({
+                where: {
+                    OR: [
+                        { status: 'verified' },
+                        { status: 'pending' }
+                    ],
+                    failureCount: { lt: 10 }
+                }
+            });
+
+            expect(domainsToVerify).toHaveLength(2);
+            expect(domainsToVerify.map(d => d.domain)).toContain('verified.com');
+            expect(domainsToVerify.map(d => d.domain)).toContain('pending.com');
+            expect(domainsToVerify.map(d => d.domain)).not.toContain('failed.com');
+
+            // Cleanup
+            await prisma.customDomain.deleteMany({ where: { tenantId: tenant.id } });
+            await prisma.tenant.delete({ where: { id: tenant.id } });
+        });
+
+        it('should exclude domains with high failure count', async () => {
+            const tenant = await prisma.tenant.create({
+                data: {
+                    name: 'Test Tenant 2',
+                    slug: 'test-tenant-2'
+                }
+            });
+
+            await prisma.customDomain.create({
+                data: {
+                    domain: 'failing-domain.com',
+                    status: 'verified',
+                    tenantId: tenant.id,
+                    txtRecord: 'vendora-verify=test',
+                    failureCount: 15 // High failure count
+                }
+            });
+
+            const domainsToVerify = await prisma.customDomain.findMany({
+                where: {
+                    OR: [{ status: 'verified' }, { status: 'pending' }],
+                    failureCount: { lt: 10 }
+                }
+            });
+
+            expect(domainsToVerify.map(d => d.domain)).not.toContain('failing-domain.com');
+
+            // Cleanup
+            await prisma.customDomain.deleteMany({ where: { tenantId: tenant.id } });
+            await prisma.tenant.delete({ where: { id: tenant.id } });
+        });
+    });
+
+    describe('Grace Period Logic', () => {
+        it('should start grace period on first DNS failure', async () => {
+            const tenant = await prisma.tenant.create({
+                data: {
+                    name: 'Grace Period Test',
+                    slug: 'grace-test'
+                }
+            });
+
+            const domain = await prisma.customDomain.create({
+                data: {
+                    domain: 'grace-test.com',
+                    status: 'verified',
+                    tenantId: tenant.id,
+                    txtRecord: 'vendora-verify=abc',
+                    gracePeriodStartedAt: null
+                }
+            });
+
+            // Simulate DNS failure - update domain as cron would
+            await prisma.customDomain.update({
+                where: { id: domain.id },
+                data: {
+                    status: 'pending',
+                    gracePeriodStartedAt: new Date(),
+                    lastVerifiedAt: null
+                }
+            });
+
+            const updated = await prisma.customDomain.findUnique({
+                where: { id: domain.id }
+            });
+
+            expect(updated?.status).toBe('pending');
+            expect(updated?.gracePeriodStartedAt).not.toBeNull();
+
+            // Cleanup
+            await prisma.customDomain.delete({ where: { id: domain.id } });
+            await prisma.tenant.delete({ where: { id: tenant.id } });
+        });
+
+        it('should disable domain after grace period expires', async () => {
+            const tenant = await prisma.tenant.create({
+                data: {
+                    name: 'Expired Grace Test',
+                    slug: 'expired-grace-test'
+                }
+            });
+
+            // Create domain with expired grace period (8 days ago)
+            const eightDaysAgo = new Date(Date.now() - 8 * 24 * 60 * 60 * 1000);
+
+            const domain = await prisma.customDomain.create({
+                data: {
+                    domain: 'expired-domain.com',
+                    status: 'pending',
+                    tenantId: tenant.id,
+                    txtRecord: 'vendora-verify=xyz',
+                    gracePeriodStartedAt: eightDaysAgo
+                }
+            });
+
+            // Check if grace period expired (7 days)
+            const GRACE_PERIOD_DAYS = 7;
+            const gracePeriodMs = GRACE_PERIOD_DAYS * 24 * 60 * 60 * 1000;
+            const gracePeriodEnd = new Date(
+                domain.gracePeriodStartedAt!.getTime() + gracePeriodMs
+            );
+
+            expect(new Date() > gracePeriodEnd).toBe(true);
+
+            // Simulate cron disabling domain
+            await prisma.customDomain.update({
+                where: { id: domain.id },
+                data: {
+                    status: 'FAILED'
+                }
+            });
+
+            const updated = await prisma.customDomain.findUnique({
+                where: { id: domain.id }
+            });
+
+            expect(updated?.status).toBe('FAILED');
+
+            // Cleanup
+            await prisma.customDomain.delete({ where: { id: domain.id } });
+            await prisma.tenant.delete({ where: { id: tenant.id } });
+        });
+
+        it('should reset grace period on successful re-verification', async () => {
+            const tenant = await prisma.tenant.create({
+                data: {
+                    name: 'Reset Grace Test',
+                    slug: 'reset-grace-test'
+                }
+            });
+
+            const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+
+            const domain = await prisma.customDomain.create({
+                data: {
+                    domain: 'recovery-domain.com',
+                    status: 'pending',
+                    tenantId: tenant.id,
+                    txtRecord: 'vendora-verify=123',
+                    gracePeriodStartedAt: twoDaysAgo
+                }
+            });
+
+            // Simulate successful re-verification
+            await prisma.customDomain.update({
+                where: { id: domain.id },
+                data: {
+                    status: 'VERIFIED',
+                    lastVerifiedAt: new Date(),
+                    gracePeriodStartedAt: null // Reset grace period
+                }
+            });
+
+            const updated = await prisma.customDomain.findUnique({
+                where: { id: domain.id }
+            });
+
+            expect(updated?.status).toBe('VERIFIED');
+            expect(updated?.gracePeriodStartedAt).toBeNull();
+            expect(updated?.lastVerifiedAt).not.toBeNull();
+
+            // Cleanup
+            await prisma.customDomain.delete({ where: { id: domain.id } });
+            await prisma.tenant.delete({ where: { id: tenant.id } });
+        });
+    });
+
+    describe('Metrics Tracking', () => {
+        it('should count only verified domains for active gauge', async () => {
+            const tenant = await prisma.tenant.create({
+                data: {
+                    name: 'Metrics Test',
+                    slug: 'metrics-test'
+                }
+            });
+
+            await prisma.customDomain.createMany({
+                data: [
+                    { domain: 'verified1.com', status: 'verified', tenantId: tenant.id, txtRecord: 'v1' },
+                    { domain: 'verified2.com', status: 'verified', tenantId: tenant.id, txtRecord: 'v2' },
+                    { domain: 'pending1.com', status: 'pending', tenantId: tenant.id, txtRecord: 'p1' },
+                    { domain: 'failed1.com', status: 'failed', tenantId: tenant.id, txtRecord: 'f1' }
+                ]
+            });
+
+            // Count as cron job does
+            const activeCount = await prisma.customDomain.count({
+                where: {
+                    status: 'verified'
+                }
+            });
+
+            expect(activeCount).toBe(2); // Only verified domains
+
+            // Cleanup
+            await prisma.customDomain.deleteMany({ where: { tenantId: tenant.id } });
+            await prisma.tenant.delete({ where: { id: tenant.id } });
+        });
+    });
+});
