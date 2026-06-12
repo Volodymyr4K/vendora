@@ -37,6 +37,6 @@
       <path d="M650 470 C690 420, 720 440, 760 410 C805 375, 850 395, 874 360" fill="none" stroke="#111214" stroke-opacity="0.18" stroke-width="10" stroke-linecap="round"/>
     </g>
 
-    <text x="112" y="528" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="14" font-weight="800" fill="#555a63">Зображення-демо • замініть на реальні фото у продакшні</text>
+    <text x="112" y="528" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="14" font-weight="800" fill="#555a63">Demo image • replace with real photos in production</text>
   </g>
 </svg>

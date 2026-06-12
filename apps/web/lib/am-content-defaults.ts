@@ -97,7 +97,7 @@ export const AM_CONTENT_DEFAULTS: AmContentV1 = {
     },
     header: {
         brand: {
-            text: fixed("AM Pub."),
+            text: fixed("Berlin Press"),
         },
         nav: [
             { id: "catalog", label: l("Katalog", "Catalog"), href: "/catalog" },
@@ -236,7 +236,7 @@ export const AM_CONTENT_DEFAULTS: AmContentV1 = {
         ],
     },
     footer: {
-        brandTitle: fixed("AM Pub."),
+        brandTitle: fixed("Berlin Press"),
         brandText: l(
             "Unabhängiger Verlag in Berlin.\nWir suchen neue Stimmen und bewahren\ndie Traditionen der Buchkultur.",
             "Independent publisher in Berlin.\nWe seek new voices and preserve\nthe traditions of book culture."),

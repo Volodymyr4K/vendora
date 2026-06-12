@@ -26,5 +26,5 @@
   <text x="120" y="170" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="28" font-weight="900" fill="#111214" letter-spacing="-0.6">Vendora • vNext Demo</text>
   <text id="t1" x="120" y="225" font-family="ui-sans-serif, system-ui" font-size="56" font-weight="950" fill="#111214" letter-spacing="-1.2">TITLE</text>
   <text id="t2" x="120" y="275" font-family="ui-sans-serif, system-ui" font-size="22" font-weight="700" fill="#555a63">SUBTITLE</text>
-  <text x="120" y="520" font-family="ui-sans-serif, system-ui" font-size="18" font-weight="800" fill="#111214" opacity="0.72">Зображення‑плейсхолдер • замінити на реальні фото</text>
+  <text x="120" y="520" font-family="ui-sans-serif, system-ui" font-size="18" font-weight="800" fill="#111214" opacity="0.72">Placeholder image • replace with real photos</text>
 </svg>

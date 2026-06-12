@@ -21,13 +21,13 @@
 
   <g>
     <text x="112" y="168" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="18" font-weight="900" fill="#111214" opacity="0.70">Vendora • demo</text>
-    <text x="112" y="232" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="44" font-weight="950" fill="#111214">Спайсі тунець</text>
+    <text x="112" y="232" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="44" font-weight="950" fill="#111214">Spicy tuna</text>
 
-    <text x="112" y="280" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="20" font-weight="700" fill="#555a63">Тунець • соус спайсі • огірок</text>
+    <text x="112" y="280" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="20" font-weight="700" fill="#555a63">Tuna • spicy sauce • cucumber</text>
 
     <g>
       <rect x="112" y="320" width="220" height="36" rx="18" fill="#E85D75" opacity="0.18"/>
-      <text x="128" y="345" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="14" font-weight="900" fill="#111214">гостре</text>
+      <text x="128" y="345" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="14" font-weight="900" fill="#111214">spicy</text>
     </g>
 
     <g opacity="0.9">
@@ -37,6 +37,6 @@
       <path d="M650 470 C690 420, 720 440, 760 410 C805 375, 850 395, 874 360" fill="none" stroke="#111214" stroke-opacity="0.18" stroke-width="10" stroke-linecap="round"/>
     </g>
 
-    <text x="112" y="528" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="14" font-weight="800" fill="#555a63">Зображення-демо • замініть на реальні фото у продакшні</text>
+    <text x="112" y="528" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial" font-size="14" font-weight="800" fill="#555a63">Demo image • replace with real photos in production</text>
   </g>
 </svg>

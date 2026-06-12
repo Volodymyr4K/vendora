@@ -9,6 +9,21 @@ Built as a production-grade monorepo: Next.js storefront, Fastify BFF, PostgreSQ
 
 ---
 
+## Two tenants, one platform
+
+The same deployment serves completely different storefronts — each tenant brings its own template, theme, catalog and locale set:
+
+| Publishing storefront (`berlin-press`) | Food delivery storefront (`vendora-sushi-hq`) |
+|---|---|
+| ![Berlin Press home](docs/screenshots/berlin-press-home.png) | ![Catalog](docs/screenshots/storefront-catalog.png) |
+| ![Berlin Press catalog](docs/screenshots/berlin-press-catalog.png) | ![Checkout](docs/screenshots/checkout.png) |
+
+**Catalog → cart → checkout flow:**
+
+![Checkout flow](docs/screenshots/checkout-flow.gif)
+
+---
+
 ## Highlights
 
 - **Multi-tenancy with enforced isolation** — every tenant-scoped query is guarded; CI runs dedicated isolation tests against a real database plus static gates that fail the build if a Prisma query misses a `tenantId` filter.
