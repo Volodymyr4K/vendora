@@ -37,10 +37,10 @@ export default async function CategoryPage({
   } catch (error) {
     return (
       <>
-        <Header title={`Категорія • ${cfg.cityName}`} right={<CartLink branchSlug={cfg.slug} />} />
+        <Header title={`Category • ${cfg.cityName}`} right={<CartLink branchSlug={cfg.slug} />} />
         <ErrorBanner
-          title="Не вдалося завантажити категорію"
-          details="Спробуйте ще раз або зверніться в контакти."
+          title="Failed to load category"
+          details="Try again or reach out via contacts."
           contactsHref={storefrontHref(routingContext, "/", { explicitBranchSlug: cfg.slug })}
           retryHref={storefrontHref(routingContext, `/menu/${categorySlug}`, { explicitBranchSlug: cfg.slug })}
         />
@@ -50,7 +50,7 @@ export default async function CategoryPage({
 
   return (
     <>
-      <Header title={`Категорія: ${categorySlug}`} subtitle={`Філія: ${cfg.slug}`} right={<CartLink branchSlug={cfg.slug} />} />
+      <Header title={`Category: ${categorySlug}`} subtitle={`Branch: ${cfg.slug}`} right={<CartLink branchSlug={cfg.slug} />} />
       <div className="card">
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12 }}>
           {payload.items.map((it) => (
@@ -60,7 +60,7 @@ export default async function CategoryPage({
                 style={{ textDecoration: "none", color: "inherit", minWidth: 0 }}
               >
                 <div style={{ fontWeight: 950, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{it.title}</div>
-                <div className="muted" style={{ marginTop: 6 }}>{formatPrice(it.price, true)} грн</div>
+                <div className="muted" style={{ marginTop: 6 }}>{formatPrice(it.price, true)} UAH</div>
               </a>
               <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
                 <AddToCartButton id={it.id} title={it.title} price={it.price} tenantSlug={tenantSlug} />

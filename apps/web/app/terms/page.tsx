@@ -4,9 +4,9 @@ export default function Terms() {
   return (
     <>
       <SiteTopbar />
-      <Header title="Terms" subtitle="Demo-сторінка (заглушка)" />
+      <Header title="Terms" subtitle="Demo page (placeholder)" />
       <div className="card" style={{ lineHeight: 1.55, fontWeight: 800 }}>
-        Тут будуть умови користування. Step 10 фіксує каркас продакшн-структури сайту (каталог, доставка,
+        Terms of use will live here. This page is part of the production site skeleton (catalog, delivery,
         checkout, policy pages).
       </div>
     </>

@@ -28,7 +28,7 @@ function formatHoursForDate(schedule: WorkingSchedule, current: DateTime): strin
     if (schedule.overrides && dateIso in schedule.overrides) {
         const override = schedule.overrides[dateIso];
         if (!override || !Array.isArray(override) || override.length === 0) {
-            return "Зачинено сьогодні (виняток)";
+            return "Closed today (exception)";
         }
         return override.map(i => `${i.start} - ${i.end}`).join(', ');
     }
@@ -36,7 +36,7 @@ function formatHoursForDate(schedule: WorkingSchedule, current: DateTime): strin
     // 2) Check regular schedule
     const intervals: DaySchedule | undefined | null = schedule[dayKey];
     if (!intervals || !Array.isArray(intervals) || intervals.length === 0) {
-        return "Зачинено сьогодні";
+        return "Closed today";
     }
 
     return intervals.map(i => `${i.start} - ${i.end}`).join(', ');
@@ -120,7 +120,7 @@ export function validateDeliveryTime(
     const now = DateTime.now().setZone(timezone);
 
     if (!reqDt.isValid) {
-        return { valid: false, error: "INVALID_DATE", message: "Невірний формат дати" };
+        return { valid: false, error: "INVALID_DATE", message: "Invalid date format" };
     }
 
     // 0. Slot Membership Validation (must match /time-slots generation exactly)
@@ -131,7 +131,7 @@ export function validateDeliveryTime(
         return {
             valid: false,
             error: "INVALID_DELIVERY_TIME",
-            message: "Обраний час недоступний. Оберіть час зі списку слотів."
+            message: "The selected time is unavailable. Please pick a time from the slot list."
         };
     }
     
@@ -140,7 +140,7 @@ export function validateDeliveryTime(
         return {
             valid: false,
             error: "INVALID_DELIVERY_TIME",
-            message: "Обраний час недоступний. Оберіть час зі списку слотів."
+            message: "The selected time is unavailable. Please pick a time from the slot list."
         };
     }
     
@@ -149,7 +149,7 @@ export function validateDeliveryTime(
         return {
             valid: false,
             error: "INVALID_DELIVERY_TIME",
-            message: "Обраний час недоступний. Оберіть час зі списку слотів."
+            message: "The selected time is unavailable. Please pick a time from the slot list."
         };
     }
 
@@ -161,7 +161,7 @@ export function validateDeliveryTime(
         return {
             valid: false,
             error: "INSUFFICIENT_ADVANCE_TIME",
-            message: `Замовлення на певний час потрібно робити мінімум за ${branch.minAdvanceMinutes} хв.`
+            message: `Scheduled orders must be placed at least ${branch.minAdvanceMinutes} min in advance.`
         };
     }
 
@@ -171,7 +171,7 @@ export function validateDeliveryTime(
         return {
             valid: false,
             error: "TOO_FAR_IN_FUTURE",
-            message: "Можна замовити тільки на сьогодні або завтра."
+            message: "Orders can only be scheduled for today or tomorrow."
         };
     }
 
@@ -198,13 +198,13 @@ export function validateDeliveryTime(
     if (!isOpen) {
         const displayHours = workingSchedule
             ? formatHoursForDate(workingSchedule, reqDt)
-            : 'Графік роботи не налаштовано';
+            : 'Working schedule is not configured';
 
-        let message = `Обраний час поза робочими годинами (${displayHours})`;
+        let message = `The selected time is outside working hours (${displayHours})`;
         if (workingSchedule) {
             const nextOpen = findNextOpening(workingSchedule, reqDt);
             if (nextOpen) {
-                message += ` Наступне відкриття: ${formatNextOpening(nextOpen)}`;
+                message += ` Next opening: ${formatNextOpening(nextOpen)}`;
             }
         }
 
@@ -247,13 +247,13 @@ export function validateASAP(branch: {
     if (!isOpen) {
         const displayHours = workingSchedule
             ? formatHoursForDate(workingSchedule, now)
-            : 'Графік роботи не налаштовано';
+            : 'Working schedule is not configured';
 
-        let message = `Заклад зараз зачинений. Робочі години: ${displayHours}`;
+        let message = `The venue is currently closed. Working hours: ${displayHours}`;
         if (workingSchedule) {
             const nextOpen = findNextOpening(workingSchedule, now);
             if (nextOpen) {
-                message += ` Наступне відкриття: ${formatNextOpening(nextOpen)}`;
+                message += ` Next opening: ${formatNextOpening(nextOpen)}`;
             }
         }
 
@@ -308,7 +308,7 @@ export async function validateSlotCapacity(
         return {
             valid: false,
             error: "SLOT_FULL",
-            message: "На жаль, на цей час вже забагато замовлень. Будь ласка, оберіть інший час."
+            message: "Unfortunately, this time slot is fully booked. Please choose another time."
         };
     }
 

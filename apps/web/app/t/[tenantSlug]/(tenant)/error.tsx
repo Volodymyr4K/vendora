@@ -33,12 +33,12 @@ export default function TenantError({
       }}
     >
       <div className="card" style={{ maxWidth: 400, width: "100%", textAlign: "center" }}>
-        <h2 style={{ marginBottom: 16 }}>Помилка завантаження</h2>
+        <h2 style={{ marginBottom: 16 }}>Failed to load</h2>
         <p className="muted" style={{ marginBottom: 24, lineHeight: 1.5 }}>
-          Не вдалося завантажити налаштування. Спробуйте оновити сторінку.
+          Could not load settings. Try refreshing the page.
         </p>
         <Button type="button" variant="primary" className="btn" onClick={() => reset()}>
-          Спробувати ще раз
+          Try again
         </Button>
       </div>
     </div>

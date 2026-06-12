@@ -39,12 +39,12 @@ function sleep(ms: number) {
 }
 
 const STATUS_LABELS: Record<Status["status"], string> = {
-  created: "Створено",
-  pending: "В обробці",
-  paid: "Оплачено",
-  confirmed: "Підтверджено",
-  done: "Виконано",
-  cancelled: "Скасовано",
+  created: "Created",
+  pending: "Processing",
+  paid: "Paid",
+  confirmed: "Confirmed",
+  done: "Completed",
+  cancelled: "Cancelled",
 };
 
 export function OrderStatusClient(props: { branchSlug: string; token: string; phones: string[]; tenantSlug: string }) {
@@ -79,7 +79,7 @@ export function OrderStatusClient(props: { branchSlug: string; token: string; ph
       setData(parsed.data);
       return parsed.data;
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Не вдалося отримати статус.";
+      const msg = e instanceof Error ? e.message : "Failed to fetch order status.";
       setErr(msg);
       return null;
     }
@@ -93,7 +93,7 @@ export function OrderStatusClient(props: { branchSlug: string; token: string; ph
         await sleep(60000);
         const st = await fetchOnce();
         if (st && (st.status === "done" || st.status === "cancelled")) {
-          // стоп полінг
+          // stop polling
           setPolling(false);
         }
       }
@@ -107,19 +107,19 @@ export function OrderStatusClient(props: { branchSlug: string; token: string; ph
 
   return (
     <div className="card bg-paper text-ink border border-line rounded-theme shadow-theme">
-      <div style={{ fontWeight: 950, marginBottom: 10 }}>Статус замовлення</div>
+      <div style={{ fontWeight: 950, marginBottom: 10 }}>Order status</div>
 
       {data ? (
         <div style={{ display: "grid", gap: 8 }}>
-          <div className="row2"><span>Номер</span><b>{data.orderId}</b></div>
-          <div className="row2"><span>Статус</span><b>{STATUS_LABELS[data.status]}</b></div>
+          <div className="row2"><span>Number</span><b>{data.orderId}</b></div>
+          <div className="row2"><span>Status</span><b>{STATUS_LABELS[data.status]}</b></div>
           {data.requestedDeliveryTime && (
             <div className="row2 bg-[var(--bg)] text-ink border border-line py-1 rounded-theme">
-              <span>Доставка на</span>
+              <span>Delivery at</span>
               <b>{new Date(data.requestedDeliveryTime).toLocaleString('uk-UA', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'long' })}</b>
             </div>
           )}
-          <div className="row2"><span>Оновлено</span><b>{new Date(data.updatedAt).toLocaleString()}</b></div>
+          <div className="row2"><span>Updated</span><b>{new Date(data.updatedAt).toLocaleString()}</b></div>
           {data.message ? <div className="muted text-muted">{data.message}</div> : null}
         </div>
       ) : null}
@@ -127,18 +127,18 @@ export function OrderStatusClient(props: { branchSlug: string; token: string; ph
       {err ? <div className="danger" style={{ marginTop: 10 }}>{err}</div> : null}
 
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 12 }}>
-        <Button className="btn bg-paper text-ink border border-line" type="button" variant="outline" onClick={fetchOnce}>Оновити</Button>
+        <Button className="btn bg-paper text-ink border border-line" type="button" variant="outline" onClick={fetchOnce}>Refresh</Button>
         <a
           className="btn bg-paper text-ink border border-line"
           href={storefrontHref(routingContext, "/menu", { explicitBranchSlug: props.branchSlug })}
         >
-          Каталог
+          Catalog
         </a>
-        {phones.length ? <a className="btn bg-paper text-ink border border-line" href={`tel:${phones[0]}`}>Подзвонити</a> : null}
+        {phones.length ? <a className="btn bg-paper text-ink border border-line" href={`tel:${phones[0]}`}>Call us</a> : null}
       </div>
 
       <div className="muted text-muted" style={{ marginTop: 12, fontSize: 12.5 }}>
-        Сторінка має tokenized URL (без персональних даних). Для SEO — noindex.
+        This page uses a tokenized URL (no personal data). SEO: noindex.
       </div>
     </div>
   );

@@ -103,7 +103,7 @@ export async function routesCustomerOrders(fastify: FastifyInstance) {
             const catalogItem = itemMap.get(item.id);
 
             if (!catalogItem || catalogItem.status !== "ACTIVE") {
-                warnings.push(`Товар "${catalogItem?.title || 'Unknown'}" більше не доступний`);
+                warnings.push(`Item "${catalogItem?.title || 'Unknown'}" is no longer available`);
                 continue;
             }
 

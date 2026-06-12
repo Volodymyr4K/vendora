@@ -87,8 +87,8 @@ return tracer.startActiveSpan('operation.name', async (span) => {
 ```
 
 ### Tenant-scoped update/delete by id
-- Для моделей з `@@unique([tenantId, id])` (Order, ItemVariant, OptionGroup, OptionItem) **single-row** update/delete мають використовувати `where: { tenantId_id: { tenantId, id } }`, щоб scope гарантувався на рівні БД.
-- Зразок: `option-groups.routes.ts` (OptionGroup/OptionItem — findUnique/update/delete з `tenantId_id`).
+- For models with `@@unique([tenantId, id])` (Order, ItemVariant, OptionGroup, OptionItem), **single-row** update/delete must use `where: { tenantId_id: { tenantId, id } }` so the scope is guaranteed at the DB level.
+- Reference example: `option-groups.routes.ts` (OptionGroup/OptionItem — findUnique/update/delete with `tenantId_id`).
 
 ## 🔄 PR Process
 

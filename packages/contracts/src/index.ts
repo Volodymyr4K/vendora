@@ -42,8 +42,8 @@ export type TimeInterval = z.infer<typeof zTimeInterval>;
 export type DaySchedule = z.infer<typeof zDaySchedule>;
 export type WorkingSchedule = z.infer<typeof zWorkingSchedule>;
 
-/** BranchConfig — єдина правда для slug → місто/телефони/години/SEO */
-/** BranchConfig — єдина правда для slug → місто/телефони/години/SEO */
+/** BranchConfig — single source of truth for slug → city/phones/hours/SEO */
+/** BranchConfig — single source of truth for slug → city/phones/hours/SEO */
 export const zBranchListItem = z.object({
   slug: z.string().min(1),
   cityName: z.string().min(1),
@@ -70,7 +70,7 @@ export const zBranchConfig = z.object({
 export const zBranchConfigWithoutTenant = zBranchConfig.omit({ tenant: true });
 export type BranchConfigWithoutTenant = z.infer<typeof zBranchConfigWithoutTenant>;
 
-/** DeliveryCfg — цифри або валідні значення (без NaN/null) */
+/** DeliveryCfg — numbers or valid values (no NaN/null) */
 export const zDeliveryCfg = z.object({
   deliveryFee: z.number().nonnegative(),
   freeFrom: z.number().nonnegative(),
@@ -79,7 +79,7 @@ export const zDeliveryCfg = z.object({
   zones: z.array(z.string()).default([]),
 });
 
-/** Fallback delivery: коли upstream невалідний/недоступний */
+/** Fallback delivery: when the upstream is invalid/unavailable */
 export const zDeliveryFallback = z.object({
   mode: z.literal("fallback"),
   message: z.string().min(1),
@@ -106,7 +106,7 @@ export const zMenuItem = z.object({
   slug: z.string().min(1).optional(),
   title: z.string().min(1),
   price: z.number().nonnegative(),
-  // imageUrl може бути абсолютним або відносним (у BFF нормалізуємо до абсолютного)
+  // imageUrl can be absolute or relative (the BFF normalizes it to absolute)
   imageUrl: z.string().min(1).nullable().optional(),
   imageAlt: z.string().min(1).nullable().optional(),
   desc: z.string().nullish().transform(val => val ?? ''),

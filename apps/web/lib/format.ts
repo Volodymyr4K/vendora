@@ -12,10 +12,10 @@ export function formatPrice(amount: number, alreadyInUnits = false): string {
 /**
  * Format today's working hours from workingSchedule (SSOT).
  * Returns first interval for today in format "10:00 - 22:00".
- * Falls back to "Графік" if schedule is missing or invalid.
+ * Falls back to "Hours" if schedule is missing or invalid.
  */
 export function formatTodayHours(workingSchedule?: { mon?: Array<{ start: string; end: string }>; tue?: Array<{ start: string; end: string }>; wed?: Array<{ start: string; end: string }>; thu?: Array<{ start: string; end: string }>; fri?: Array<{ start: string; end: string }>; sat?: Array<{ start: string; end: string }>; sun?: Array<{ start: string; end: string }>; overrides?: Record<string, Array<{ start: string; end: string }> | null> } | null): string {
-    if (!workingSchedule) return "Графік";
+    if (!workingSchedule) return "Hours";
 
     const today = new Date();
     const dateIsoParts = today.toISOString().split('T');
@@ -31,7 +31,7 @@ export function formatTodayHours(workingSchedule?: { mon?: Array<{ start: string
                 return `${first.start} - ${first.end}`;
             }
         }
-        return "Графік";
+        return "Hours";
     }
 
     // Map day of week to schedule key (0=Sunday, 1=Monday, etc.)
@@ -46,12 +46,12 @@ export function formatTodayHours(workingSchedule?: { mon?: Array<{ start: string
     };
 
     const dayKey = dayKeys[dayOfWeek];
-    if (!dayKey) return "Графік";
+    if (!dayKey) return "Hours";
 
     const intervals = workingSchedule[dayKey];
-    if (!intervals || !Array.isArray(intervals) || intervals.length === 0) return "Графік";
+    if (!intervals || !Array.isArray(intervals) || intervals.length === 0) return "Hours";
 
     const first = intervals[0];
-    if (!first) return "Графік";
+    if (!first) return "Hours";
     return `${first.start} - ${first.end}`;
 }

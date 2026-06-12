@@ -3,7 +3,7 @@ import { z } from 'zod';
 // Time Slots Schemas
 export const zTimeSlot = z.object({
     value: z.string().datetime({ offset: true }), // ISO datetime string (offsets allowed)
-    label: z.string(), // Display label: "Сьогодні 14:30", "Завтра 10:00"
+    label: z.string(), // Display label: "Today 14:30", "Tomorrow 10:00"
     isAvailable: z.boolean(), // Is this slot within working hours?
 });
 

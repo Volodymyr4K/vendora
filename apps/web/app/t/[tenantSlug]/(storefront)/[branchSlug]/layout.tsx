@@ -44,8 +44,8 @@ export async function generateMetadata(
     : `/${cfg.slug}`;
 
   return {
-    title: `${brandTitle} — доставка в ${cfg.cityName}`,
-    description: `Каталог, доставка та контакти: ${cfg.cityName}.`,
+    title: `${brandTitle} — delivery in ${cfg.cityName}`,
+    description: `Catalog, delivery and contacts: ${cfg.cityName}.`,
     alternates: { canonical },
     openGraph: { title: `${brandTitle} — ${cfg.cityName}`, type: "website" },
   };

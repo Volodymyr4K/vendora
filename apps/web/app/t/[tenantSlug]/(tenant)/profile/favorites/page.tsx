@@ -45,13 +45,13 @@ export default async function FavoritesPage({ params }: { params: Promise<{ tena
 
     return (
         <div style={{ padding: 20 }}>
-            <h1 className="sectionTitle">Улюблене</h1>
+            <h1 className="sectionTitle">Favorites</h1>
             <div className="sectionSub" style={{ marginBottom: 20 }}>
-                Ваші збережені страви ({favorites.length})
+                Your saved items ({favorites.length})
             </div>
 
             {favorites.length === 0 ? (
-                <div className="muted">Ви ще нічого не додали до улюбленого.</div>
+                <div className="muted">You have not added anything to favorites yet.</div>
             ) : (
                 <div className="grid3">
                     {favorites.map((fav) => {
@@ -62,7 +62,7 @@ export default async function FavoritesPage({ params }: { params: Promise<{ tena
                         const item = isRecord(rawItem) ? rawItem : {};
 
                         const id = getString(item, "id");
-                        const title = getString(item, "title") || "Позиція";
+                        const title = getString(item, "title") || "Item";
                         const desc = getString(item, "desc");
                         const weightG = getNumber(item, "weightG");
                         const basePriceCents = getNumber(item, "basePriceCents") ?? 0;
@@ -76,7 +76,7 @@ export default async function FavoritesPage({ params }: { params: Promise<{ tena
                                     <p className="productTitle">{title}</p>
                                     {desc ? <p className="productDesc">{desc}</p> : null}
                                     <div className="tagRow" style={{ marginTop: 8 }}>
-                                        {weightG ? <span className="tag">{weightG} г</span> : null}
+                                        {weightG ? <span className="tag">{weightG} g</span> : null}
                                     </div>
                                     <div style={{ position: "absolute", top: -8, right: -8, zIndex: 10 }}>
                                         <FavoriteButton productId={effectiveId} initialIsFavorite={true} tenantSlug={tenantSlug} />
@@ -84,7 +84,7 @@ export default async function FavoritesPage({ params }: { params: Promise<{ tena
                                 </div>
                                 <div className="priceRow" style={{ marginTop: "auto", paddingTop: 10 }}>
                                     <div>
-                                        <span className="price">{formatPrice(basePriceCents, false)} грн</span>
+                                        <span className="price">{formatPrice(basePriceCents, false)} UAH</span>
                                     </div>
                                     {id && <AddToCartButton id={id} title={title} price={basePriceCents} tenantSlug={tenantSlug} />}
                                 </div>

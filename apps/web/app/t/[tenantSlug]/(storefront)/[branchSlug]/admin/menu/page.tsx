@@ -239,7 +239,7 @@ export default function AdminMenuPage({ params }: { params: Promise<{ tenantSlug
                                     <div style={{ display: "flex", justifyContent: "space-between" }}>
                                         <div style={{ fontWeight: 800 }}>{item.title}</div>
                                         <div className="text-success">
-                                            {formatPrice(item.price, true)} {isBerlin ? "€" : "грн"}
+                                            {formatPrice(item.price, true)} {isBerlin ? "€" : "UAH"}
                                         </div>
                                     </div>
                                     <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>{item.desc || "No description"}</div>

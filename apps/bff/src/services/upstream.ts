@@ -168,7 +168,7 @@ export function createUpstream(cfg: Cfg, metrics?: Metrics): Upstream {
         const raw = mockDeliveryByBranch[branch];
         const parsed = zDeliveryResponse.safeParse(raw);
         if (!parsed.success) {
-          return { mode: "fallback", message: "Уточніть умови доставки у чаті або телефоном." };
+          return { mode: "fallback", message: "Please confirm delivery terms via chat or phone." };
         }
         return parsed.data;
       },
@@ -260,7 +260,7 @@ export function createUpstream(cfg: Cfg, metrics?: Metrics): Upstream {
         const alt = data?.delivery ?? data?.config ?? data?.data ?? raw;
         const parsed2 = zDeliveryResponse.safeParse(alt);
         if (parsed2.success) return parsed2.data;
-        return { mode: "fallback", message: "Уточніть умови доставки у чаті або телефоном." };
+        return { mode: "fallback", message: "Please confirm delivery terms via chat or phone." };
       }
       return normalizeDelivery(raw, { unwrapKeys: cfg.upstreamUnwrapKeys });
     },

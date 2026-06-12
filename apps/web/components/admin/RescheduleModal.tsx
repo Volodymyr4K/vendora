@@ -77,9 +77,9 @@ export function RescheduleModal({
 
                 {/* WARNING ALERT */}
                 <div className="bg-warning-weak text-warning border-warning rounded-theme" style={{ padding: 12, marginBottom: 24, fontSize: '0.9em', borderWidth: '1px', borderStyle: 'solid', lineHeight: 1.4 }}>
-                    <div style={{ fontWeight: 'bold', marginBottom: 4 }}>⚠️ Увага!</div>
-                    Зміна часу не надсилає автоматичне сповіщення клієнту.
-                    <div style={{ marginTop: 4 }}>Будь ласка, <strong>зателефонуйте клієнту, щоб узгодити зміни ({order.customer.phone}).</strong></div>
+                    <div style={{ fontWeight: 'bold', marginBottom: 4 }}>⚠️ Attention!</div>
+                    Changing the time does not send an automatic notification to the customer.
+                    <div style={{ marginTop: 4 }}>Please <strong>call the customer to agree on the change ({order.customer.phone}).</strong></div>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>

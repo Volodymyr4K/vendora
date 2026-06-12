@@ -490,7 +490,7 @@ export async function getDelivery(branchSlug: string, tenantSlug: string) {
       // 404: Branch not found (or delivery not configured)
       // 5xx: Upstream error
       // undefined status: Timeout or Network Error
-      return { mode: "fallback" as const, message: "Сервіс доставки тимчасово недоступний." };
+      return { mode: "fallback" as const, message: "Delivery service is temporarily unavailable." };
     }
 
     // 3. Unknown errors -> Rethrow

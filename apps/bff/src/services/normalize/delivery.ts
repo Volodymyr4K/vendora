@@ -37,6 +37,6 @@ export function normalizeDelivery(rawInput: unknown, opts: NormalizeOpts) {
 
   return zDeliveryFallback.parse({
     mode: "fallback",
-    message: "Уточніть умови доставки у закладі.",
+    message: "Please confirm delivery terms with the venue.",
   });
 }

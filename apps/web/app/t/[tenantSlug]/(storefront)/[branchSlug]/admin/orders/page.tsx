@@ -245,7 +245,7 @@ export default function AdminOrdersPage({ params }: { params: Promise<{ tenantSl
                                 />
                             </td>
                             <td style={{ padding: 10, textAlign: "right", fontWeight: 800 }}>
-                                {formatPrice(o.total, true)} грн
+                                {formatPrice(o.total, true)} UAH
                             </td>
                         </tr>
                     ))}

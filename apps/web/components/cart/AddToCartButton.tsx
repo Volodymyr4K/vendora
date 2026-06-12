@@ -16,10 +16,10 @@ export function AddToCartButton(props: { id: string; title: string; price: numbe
     <Button
       variant="primary"
       onClick={() => cart.add({ id: props.id, title: props.title, priceSnapshot: props.price }, 1)}
-      aria-label="Додати в кошик"
+      aria-label="Add to cart"
       type="button"
     >
-      + У кошик
+      + Add to cart
     </Button>
   );
 }

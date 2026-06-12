@@ -53,8 +53,8 @@ async function main() {
     const branchesData = [
         {
             slug: "kyiv-bazhana",
-            cityName: "Київ",
-            address: "просп. Миколи Бажана, 17",
+            cityName: "Kyiv",
+            address: "17 Mykoly Bazhana Ave",
             phones: ["044 123 4567", "067 123 4567"],
             workingSchedule: {
                 mon: [{ start: "10:00", end: "22:00" }],
@@ -70,14 +70,14 @@ async function main() {
             freeFrom: 65000, // 650 UAH
             etaMin: 35,
             etaMax: 55,
-            zones: ["Лівий берег", "Дарниця"],
+            zones: ["Left Bank", "Darnytsia"],
             isActive: true,
             tenantId: tenant.id,
         },
         {
             slug: "lviv-rynok",
-            cityName: "Львів",
-            address: "пл. Ринок, 1",
+            cityName: "Lviv",
+            address: "1 Rynok Sq",
             phones: ["032 123 4567", "093 123 4567"],
             workingSchedule: {
                 mon: [{ start: "10:00", end: "23:00" }],
@@ -93,14 +93,14 @@ async function main() {
             freeFrom: 60000, // 600 UAH
             etaMin: 40,
             etaMax: 65,
-            zones: ["Центр", "Сихів"],
+            zones: ["Center", "Sykhiv"],
             isActive: true,
             tenantId: tenant.id,
         },
         {
             slug: "odesa-arkadia",
-            cityName: "Одеса",
-            address: "Аркадійська алея, 1",
+            cityName: "Odesa",
+            address: "1 Arcadia Alley",
             phones: ["048 123 4567", "050 123 4567"],
             workingSchedule: {
                 mon: [{ start: "11:00", end: "00:00" }],
@@ -116,7 +116,7 @@ async function main() {
             freeFrom: 70000, // 700 UAH
             etaMin: 45,
             etaMax: 75,
-            zones: ["Аркадія", "Приморський"],
+            zones: ["Arcadia", "Prymorskyi"],
             isActive: true,
             tenantId: tenant.id,
         },
@@ -155,11 +155,11 @@ async function main() {
 
     // 4. Create Categories
     const categoriesData = [
-        { slug: "sushi", title: "Суші", sortOrder: 1 },
-        { slug: "rolls", title: "Роли", sortOrder: 2 },
-        { slug: "sets", title: "Сети", sortOrder: 3 },
-        { slug: "dishes", title: "Страви", sortOrder: 4 },
-        { slug: "drinks", title: "Напої", sortOrder: 5 },
+        { slug: "sushi", title: "Sushi", sortOrder: 1 },
+        { slug: "rolls", title: "Rolls", sortOrder: 2 },
+        { slug: "sets", title: "Sets", sortOrder: 3 },
+        { slug: "dishes", title: "Dishes", sortOrder: 4 },
+        { slug: "drinks", title: "Drinks", sortOrder: 5 },
     ];
 
     const categories = [];
@@ -217,66 +217,66 @@ async function main() {
         {
             slug: "nigiri-salmon",
             cat: "sushi",
-            title: "Нігірі Лосось",
+            title: "Salmon Nigiri",
             price: 6500,
             weightG: 35,
             imageUrl: "/demo/sushi/nigiri-salmon.svg",
-            desc: "Свіжий лосось на рисі"
+            desc: "Fresh salmon on rice"
         },
         {
             slug: "nigiri-tuna",
             cat: "sushi",
-            title: "Нігірі Тунець",
+            title: "Tuna Nigiri",
             price: 7500,
             weightG: 35,
             imageUrl: "/demo/sushi/nigiri-tuna.svg",
-            desc: "Свіжий тунець на рисі"
+            desc: "Fresh tuna on rice"
         },
 
         // Rolls
         {
             slug: "philadelphia",
             cat: "rolls",
-            title: "Філадельфія",
+            title: "Philadelphia",
             price: 24500,
             weightG: 280,
-            desc: "Лосось, сир філадельфія, огірок",
+            desc: "Salmon, Philadelphia cheese, cucumber",
             imageUrl: "/demo/rolls/philadelphia.svg"
         },
         {
             slug: "california",
             cat: "rolls",
-            title: "Каліфорнія",
+            title: "California",
             price: 21000,
             weightG: 260,
-            desc: "Краб, ікра тобіко, авокадо",
+            desc: "Crab, tobiko caviar, avocado",
             imageUrl: "/demo/rolls/california.svg"
         },
         {
             slug: "dragon",
             cat: "rolls",
-            title: "Зелений Дракон",
+            title: "Green Dragon",
             price: 28000,
             weightG: 290,
-            desc: "Вугор, авокадо, соус унагі",
+            desc: "Eel, avocado, unagi sauce",
             imageUrl: "/demo/rolls/dragon.svg"
         },
         {
             slug: "spicy-tuna",
             cat: "rolls",
-            title: "Спайсі Тунець",
+            title: "Spicy Tuna",
             price: 23000,
             weightG: 250,
-            desc: "Тунець, спайсі соус, огірок",
+            desc: "Tuna, spicy sauce, cucumber",
             imageUrl: "/demo/rolls/spicy-tuna.svg"
         },
         {
             slug: "veggie",
             cat: "rolls",
-            title: "Вегетта",
+            title: "Veggie",
             price: 18000,
             weightG: 220,
-            desc: "Огірок, болгарський перець, салат",
+            desc: "Cucumber, bell pepper, lettuce",
             imageUrl: "/demo/rolls/cucumber.svg"
         },
 
@@ -284,28 +284,28 @@ async function main() {
         {
             slug: "set-classic",
             cat: "sets",
-            title: "Сет Класичний",
+            title: "Classic Set",
             price: 85000,
             weightG: 950,
-            desc: "Філадельфія, Каліфорнія, Макі",
+            desc: "Philadelphia, California, Maki",
             imageUrl: "/demo/sets/classic.svg"
         },
         {
             slug: "set-family",
             cat: "sets",
-            title: "Сет Сімейний",
+            title: "Family Set",
             price: 120000,
             weightG: 1400,
-            desc: "5 різних ролів для всієї сім'ї",
+            desc: "5 different rolls for the whole family",
             imageUrl: "/demo/sets/family.svg"
         },
         {
             slug: "set-weekend",
             cat: "sets",
-            title: "Сет Вікенд",
+            title: "Weekend Set",
             price: 155000,
             weightG: 1800,
-            desc: "Великий набір для вечірки",
+            desc: "A big set for a party",
             imageUrl: "/demo/sets/weekend.svg"
         },
 
@@ -313,29 +313,29 @@ async function main() {
         {
             slug: "wok-chicken",
             cat: "dishes",
-            title: "WOK Курка",
+            title: "Chicken WOK",
             price: 16500,
             weightG: 350,
             imageUrl: "/demo/wok/teriyaki.svg",
-            desc: "Курка з овочами в соусі теріякі"
+            desc: "Chicken with vegetables in teriyaki sauce"
         },
         {
             slug: "wok-veggie",
             cat: "dishes",
-            title: "WOK Овочі",
+            title: "Veggie WOK",
             price: 14000,
             weightG: 320,
             imageUrl: "/demo/wok/veggie.svg",
-            desc: "Асорті овочів з соєвим соусом"
+            desc: "Assorted vegetables with soy sauce"
         },
         {
             slug: "wok-shrimp",
             cat: "dishes",
-            title: "WOK Креветки",
+            title: "Shrimp WOK",
             price: 21500,
             weightG: 330,
             imageUrl: "/demo/wok/shrimp.svg",
-            desc: "Креветки з овочами та часником"
+            desc: "Shrimp with vegetables and garlic"
         },
 
         // Drinks
@@ -345,23 +345,23 @@ async function main() {
             title: "Coca-Cola 0.5",
             price: 4000,
             imageUrl: "/demo/drinks/cola.svg",
-            desc: "Класична кола"
+            desc: "Classic cola"
         },
         {
             slug: "matcha-latte",
             cat: "drinks",
-            title: "Матча Латте",
+            title: "Matcha Latte",
             price: 8500,
             imageUrl: "/demo/drinks/matcha.svg",
-            desc: "Японський зелений чай з молоком"
+            desc: "Japanese green tea with milk"
         },
         {
             slug: "water-05",
             cat: "drinks",
-            title: "Вода 0.5",
+            title: "Water 0.5",
             price: 3000,
             imageUrl: "/demo/drinks/water.svg",
-            desc: "Мінеральна вода"
+            desc: "Mineral water"
         },
     ];
 

@@ -135,9 +135,9 @@ export async function routesTimeSlots(app: FastifyInstance, deps: RoutesDependen
 
             let label = current.toFormat('HH:mm');
             if (isToday) {
-                label = `Сьогодні ${label}`;
+                label = `Today ${label}`;
             } else if (isTomorrow) {
-                label = `Завтра ${label}`;
+                label = `Tomorrow ${label}`;
             } else {
                 label = `${current.toFormat('dd.MM')} ${label}`;
             }

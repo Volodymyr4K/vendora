@@ -160,8 +160,8 @@ GET /admin/:branchSlug/stats
     "inProgress": 8
   },
   "topProducts": [
-    { "title": "Філадельфія", "count": 18 },
-    { "title": "Каліфорнія", "count": 15 }
+    { "title": "Philadelphia", "count": 18 },
+    { "title": "California", "count": 15 }
   ]
 }
 ```
@@ -207,8 +207,8 @@ POST   /admin/:branchSlug/settings
 **Settings Schema:**
 ```json
 {
-  "cityName": "Одеса (Аркадія)",
-  "address": "вул. Генуезька, 24А",
+  "cityName": "Odesa (Arcadia)",
+  "address": "24A Henuezka St",
   "phones": ["+380501234567"],
   "hours": "10:00 - 22:00",
   "deliveryFee": 50,
@@ -253,11 +253,11 @@ GET /menu?branchSlug=:slug  # Full menu with categories
   total: 34500,  // cents (345.00 UAH)
   payload: {
     customer: {
-      name: "Іван Петренко",
+      name: "John Smith",
       phone: "+380501234567"
     },
     delivery: {
-      address: "вул. Дерибасівська, 10",
+      address: "10 Derybasivska St",
       method: "delivery",
       fee: 5000  // cents
     },
@@ -267,7 +267,7 @@ GET /menu?branchSlug=:slug  # Full menu with categories
       total: 34500,
       lines: [
         {
-          title: "Філадельфія",
+          title: "Philadelphia",
           qty: 2,
           unitPrice: 145.00,  // UAH
           total: 290.00       // UAH

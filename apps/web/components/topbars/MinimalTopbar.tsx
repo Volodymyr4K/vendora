@@ -27,12 +27,12 @@ export function MinimalTopbar(props: { cfg: BranchConfig; tenantSlug?: string })
                 <nav className="nav">
                     {menuEnabled && (
                         <a className="btn" href={storefrontHref(routingContext, "/menu", { explicitBranchSlug: cfg.slug })}>
-                            Каталог
+                            Catalog
                         </a>
                     )}
                     {deliveryEnabled && (
                         <a className="btn" href={storefrontHref(routingContext, "/delivery", { explicitBranchSlug: cfg.slug })}>
-                            Доставка
+                            Delivery
                         </a>
                     )}
                 </nav>

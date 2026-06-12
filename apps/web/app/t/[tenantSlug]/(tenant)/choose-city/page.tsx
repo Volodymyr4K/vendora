@@ -45,7 +45,7 @@ export default async function ChooseCity({
   return (
     <>
       <SiteTopbar />
-      <Header title="Оберіть місто/філію" subtitle="Step 10: репрезентативний демо‑каталог + готовий checkout." />
+      <Header title="Choose a city/branch" subtitle="Representative demo catalog + a ready-to-use checkout." />
       <div className="grid3">
         {branches.map((b) => (
           <a
@@ -57,7 +57,7 @@ export default async function ChooseCity({
             <div style={{ fontWeight: 950, fontSize: 18, letterSpacing: "-.3px" }}>{b.cityName}</div>
             <div className="muted" style={{ marginTop: 6, fontWeight: 800 }}>slug: {b.slug}</div>
             <div style={{ marginTop: 12 }}>
-              <span className="btn">Відкрити</span>
+              <span className="btn">Open</span>
             </div>
           </a>
         ))}

@@ -65,20 +65,20 @@ export function MenuClient(props: Props) {
       <div className="card" style={{ display: "grid", gap: 12 }}>
         <div className="row">
           <div>
-            <div style={{ fontWeight: 950, letterSpacing: "-.3px", fontSize: 18 }}>Каталог</div>
-            <div className="muted" style={{ fontWeight: 800, marginTop: 4 }}>Пошук, категорії, карточки товарів, кошик.</div>
+            <div style={{ fontWeight: 950, letterSpacing: "-.3px", fontSize: 18 }}>Catalog</div>
+            <div className="muted" style={{ fontWeight: 800, marginTop: 4 }}>Search, categories, product cards, cart.</div>
           </div>
           <a
             className="btn"
             href={storefrontHref(routingContext, "/checkout", { explicitBranchSlug: branchSlug })}
           >
-            Перейти до checkout
+            Go to checkout
           </a>
         </div>
 
         <Input
           className="input"
-          placeholder="Пошук по каталогу (наприклад: філадельфія, сет, гостре...)"
+          placeholder="Search the catalog (e.g.: philadelphia, set, spicy...)"
           value={q}
           onChange={(e) => setQ(e.target.value)}
         />
@@ -120,17 +120,17 @@ export function MenuClient(props: Props) {
                 </a>
                 {it.desc ? <p className="productDesc">{it.desc}</p> : null}
                 <div className="tagRow" style={{ marginTop: 8 }}>
-                  {it.weightG ? <span className="tag">{it.weightG} г</span> : null}
+                  {it.weightG ? <span className="tag">{it.weightG} g</span> : null}
                   {(it.tags || []).slice(0, 3).map((t) => (
                     <span key={t} className="tag">{t}</span>
                   ))}
-                  {it.isAvailable === false ? <span className="tag">немає</span> : null}
+                  {it.isAvailable === false ? <span className="tag">out of stock</span> : null}
                 </div>
               </div>
               <div className="priceRow">
                 <div>
-                  <span className="price">{formatPrice(it.price, true)} грн</span>
-                  {it.oldPrice ? <span className="priceOld">{formatPrice(it.oldPrice, true)} грн</span> : null}
+                  <span className="price">{formatPrice(it.price, true)} UAH</span>
+                  {it.oldPrice ? <span className="priceOld">{formatPrice(it.oldPrice, true)} UAH</span> : null}
                 </div>
                 <AddToCartButton id={it.id} title={it.title} price={it.price} tenantSlug={tenantSlug} />
               </div>

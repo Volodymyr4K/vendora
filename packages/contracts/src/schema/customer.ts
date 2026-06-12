@@ -7,7 +7,7 @@ import { z } from "zod";
 // Strict E.164 Validator
 // We DO NOT transform input here. Frontend must provide valid E.164.
 // Accepted: +38063..., +49..., +1...
-export const zCustomerPhoneInput = z.string().regex(/^\+[1-9]\d{1,14}$/, "Невірний формат. Очікується міжнародний формат (наприклад, +380...)");
+export const zCustomerPhoneInput = z.string().regex(/^\+[1-9]\d{1,14}$/, "Invalid format. Expected international format (e.g. +380...)");
 
 // ==========================================
 // 2. AUTH CONTRACTS
@@ -19,7 +19,7 @@ export const zCustomerLoginRequest = z.object({
 
 export const zCustomerVerifyRequest = z.object({
     phone: zCustomerPhoneInput,
-    code: z.string().length(4, "Код має містити 4 цифри"),
+    code: z.string().length(4, "The code must contain 4 digits"),
 });
 
 export const zCustomerAuthResponse = z.object({
@@ -36,9 +36,9 @@ export const zCustomerAuthResponse = z.object({
 // ==========================================
 
 export const zCustomerAddressCreate = z.object({
-    city: z.string().min(1, "Вкажіть місто"),
-    street: z.string().min(1, "Вкажіть вулицю"),
-    house: z.string().min(1, "Вкажіть номер будинку"),
+    city: z.string().min(1, "City is required"),
+    street: z.string().min(1, "Street is required"),
+    house: z.string().min(1, "House number is required"),
     flat: z.string().optional(),
     entrance: z.string().optional(),
     floor: z.string().optional(),

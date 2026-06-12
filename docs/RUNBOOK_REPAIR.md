@@ -1,24 +1,20 @@
 # Runbook: Repair default variant (ItemVariant)
 
-**Посилання з плану:** [PLATFORM_IMPLEMENTATION_PLAN_PHASED.md](./PLATFORM_IMPLEMENTATION_PLAN_PHASED.md) — Фаза 2, підфаза 2.1 (ItemVariant), Canonical decisions (рішення 2).
-
-Цей документ збирає процедуру repair для інваріанту «рівно один default variant на item».
+The repair procedure for the invariant "exactly one default variant per item".
 
 ---
 
-## Кейси
+## Cases
 
-- **Кейс A:** variants є, але жоден не default → repair обирає default домен-детерміновано: (1) variant з порожніми attributes + priceDeltaCents = 0 або null; інакше (2) найстаріший за createdAt; інакше (3) мінімальний id. Встановити isDefault=true в транзакції.
-- **Кейс B:** більше одного default → в одній транзакції: (1) скинути всі isDefault=false, (2) виставити обраний true (обрати за тим самим правилом, що в Кейсі A).
-- **Кейс C:** variants немає → repair створює один variant і робить його default у транзакції; SKU — за канонічним алгоритмом (префікс + encoded itemId, валідний за SKU-валідатором проекту; при колізії — до 5 спроб з детермінованим суфіксом).
+- **Case A:** variants exist but none is default → repair picks the default deterministically: (1) the variant with empty attributes and priceDeltaCents = 0 or null; otherwise (2) the oldest by createdAt; otherwise (3) the minimal id. Set isDefault=true in a transaction.
+- **Case B:** more than one default → in a single transaction: (1) reset all isDefault=false, (2) set the chosen one to true (picked by the same rule as Case A).
+- **Case C:** no variants → repair creates one variant and makes it the default in a transaction; the SKU follows the canonical algorithm (prefix + encoded itemId, valid under the project's SKU validator; on collision — up to 5 attempts with a deterministic suffix).
 
 ## Lock
 
-- `pg_advisory_xact_lock` на ключі, отриманому з рядка `default-variant:<tenantId>:<itemId>` (стабільний 64-bit hash). Один lock на операцію — дедлоків між repair-операціями немає.
+- `pg_advisory_xact_lock` on a key derived from the string `default-variant:<tenantId>:<itemId>` (a stable 64-bit hash). One lock per operation — no deadlocks between repair operations.
 
-## Після repair
+## After repair
 
-- Repair не змінює tenantId і не «ремонтує» поза tenant scope.
-- Варіант, створений у Кейсі C, **не стає sellable** автоматично; sellable після cutover визначається лише через Offer. Follow-up: лог/метрика `variant_without_offer_created`; зробити sellable — лише через явний адмін-флоу «Make variant sellable» (branch-scoped Offer coverage).
-
-(Повний текст — PLATFORM_IMPLEMENTATION_PLAN_PHASED.md, підфаза 2.1, блок «Семантика repair».)
+- Repair never changes tenantId and never "repairs" outside the tenant scope.
+- A variant created in Case C does **not** become sellable automatically; after cutover, sellability is defined only via an Offer. Follow-up: a `variant_without_offer_created` log/metric; making it sellable goes only through the explicit "Make variant sellable" admin flow (branch-scoped Offer coverage).

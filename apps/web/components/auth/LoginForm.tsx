@@ -94,8 +94,8 @@ export function LoginForm({ tenantSlug, countryCode }: LoginFormProps) {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                     </div>
-                    <h1 className="text-3xl font-bold text-accent-foreground mb-2">Вітаємо!</h1>
-                    <p className="text-accent-foreground opacity-90">Увійдіть в систему для доступу</p>
+                    <h1 className="text-3xl font-bold text-accent-foreground mb-2">Welcome!</h1>
+                    <p className="text-accent-foreground opacity-90">Sign in to access your account</p>
                 </div>
             </div>
 

@@ -23,10 +23,10 @@ export default async function FeaturesPage({ params }: { params: Promise<{ id: s
                         ← Back to Tenants
                     </Link>
                     <h1 className="text-3xl font-bold text-gray-900 mt-4">
-                        Модулі та фічі
+                        Modules & features
                     </h1>
                     <p className="text-gray-600 mt-2">
-                        Панель редагування тенанта (модулі/фічі): <span className="font-semibold text-blue-600">{tenant.name}</span> ({tenant.slug})
+                        Tenant editing panel (modules/features): <span className="font-semibold text-blue-600">{tenant.name}</span> ({tenant.slug})
                     </p>
                 </div>
 

@@ -6,7 +6,7 @@ import punycode from 'punycode.js';
  * 
  * @example
  * normalizeDomain("Example.COM") → "example.com"
- * normalizeDomain("пример.com") → "xn--e1afmkfd.com"
+ * normalizeDomain("bücher.com") → "xn--bcher-kva.com"
  */
 export function normalizeDomain(rawDomain: string): string {
     // Step 1: Trim and lowercase
@@ -21,7 +21,7 @@ export function normalizeDomain(rawDomain: string): string {
     }
 
     // Step 4: Convert IDN to punycode (Edge-safe)
-    // Example: "пример.com" → "xn--e1afmkfd.com"
+    // Example: "bücher.com" → "xn--bcher-kva.com"
     try {
         domain = punycode.toASCII(domain);
     } catch (err) {
@@ -36,7 +36,7 @@ export function normalizeDomain(rawDomain: string): string {
  * Edge-compatible
  * 
  * @example
- * toUnicodeDomain("xn--e1afmkfd.com") → "пример.com"
+ * toUnicodeDomain("xn--bcher-kva.com") → "bücher.com"
  */
 export function toUnicodeDomain(punycoded: string): string {
     try {

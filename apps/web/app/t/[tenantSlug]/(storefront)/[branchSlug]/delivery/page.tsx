@@ -15,29 +15,29 @@ export default async function DeliveryPage({ params }: { params: Promise<{ tenan
   const deliveryEnabled = isFeatureEnabled(tenantCfg.features, "basicDelivery", "delivery");
   const delivery = deliveryEnabled
     ? await getDelivery(branchSlug, tenantSlug)
-    : { mode: "fallback" as const, message: "Доставка недоступна для цього закладу." };
+    : { mode: "fallback" as const, message: "Delivery is unavailable for this venue." };
 
   return (
     <>
       <Header
-        title={`Доставка • ${cfg.cityName}`}
-        subtitle="Умови/зони/ETA (demo)"
-        right={<a className="btn" href={storefrontHref(routingContext, "/menu", { explicitBranchSlug: cfg.slug })}>Каталог</a>}
+        title={`Delivery • ${cfg.cityName}`}
+        subtitle="Terms/zones/ETA (demo)"
+        right={<a className="btn" href={storefrontHref(routingContext, "/menu", { explicitBranchSlug: cfg.slug })}>Catalog</a>}
       />
       <div className="card">
-        <div><b>Філія:</b> {cfg.cityName} • {cfg.slug}</div>
-        <div style={{ marginTop: 6 }}><b>Адреса:</b> {cfg.address || "—"}</div>
-        <div style={{ marginTop: 6 }}><b>Години:</b> {formatTodayHours(cfg.workingSchedule) === "Графік" ? "—" : formatTodayHours(cfg.workingSchedule)}</div>
-        <div style={{ marginTop: 6 }}><b>Телефон:</b> {cfg.phones?.[0] || "—"}</div>
+        <div><b>Branch:</b> {cfg.cityName} • {cfg.slug}</div>
+        <div style={{ marginTop: 6 }}><b>Address:</b> {cfg.address || "—"}</div>
+        <div style={{ marginTop: 6 }}><b>Hours:</b> {formatTodayHours(cfg.workingSchedule) === "Hours" ? "—" : formatTodayHours(cfg.workingSchedule)}</div>
+        <div style={{ marginTop: 6 }}><b>Phone:</b> {cfg.phones?.[0] || "—"}</div>
         <hr />
         {"mode" in delivery && delivery.mode === "fallback" ? (
           <div className="muted" style={{ fontWeight: 800 }}>{delivery.message}</div>
         ) : (
           <>
-            <div><b>Вартість:</b> {delivery.cfg.deliveryFee} грн</div>
-            <div style={{ marginTop: 6 }}><b>Безкоштовно від:</b> {delivery.cfg.freeFrom} грн</div>
-            <div style={{ marginTop: 6 }}><b>Час:</b> {delivery.cfg.etaMin}–{delivery.cfg.etaMax} хв</div>
-            {delivery.cfg.zones?.length ? <div style={{ marginTop: 6 }}><b>Зони:</b> {delivery.cfg.zones.join(", ")}</div> : null}
+            <div><b>Fee:</b> {delivery.cfg.deliveryFee} UAH</div>
+            <div style={{ marginTop: 6 }}><b>Free from:</b> {delivery.cfg.freeFrom} UAH</div>
+            <div style={{ marginTop: 6 }}><b>Time:</b> {delivery.cfg.etaMin}–{delivery.cfg.etaMax} min</div>
+            {delivery.cfg.zones?.length ? <div style={{ marginTop: 6 }}><b>Zones:</b> {delivery.cfg.zones.join(", ")}</div> : null}
           </>
         )}
       </div>

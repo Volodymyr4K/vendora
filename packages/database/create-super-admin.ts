@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 async function createSuperAdmin() {
     const email = 'super@admin.com';
-    // Сильний пароль: 20 символів, великі/малі літери, цифри, спецсимволи
+    // Strong password: 20 chars, upper/lowercase letters, digits, special characters
     const password = 'SuperAdm1n@2024!Secure';
 
     console.log('\n🔐 Creating SUPER_ADMIN user...');

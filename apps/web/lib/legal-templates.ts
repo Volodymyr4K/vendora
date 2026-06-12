@@ -46,29 +46,6 @@ export const LEGAL_TEMPLATES = {
         "Note: This Impressum is a template. Consider legal review depending on your jurisdiction (especially DE/AT/CH).",
       updated: "Last updated: February 21, 2026",
     },
-    ru: {
-      title: "Impressum",
-      subtitle: "Юридическая информация",
-      intro:
-        "Пожалуйста, замените информацию ниже на корректные юридические данные (компания, адрес, представители, регистрационные данные и т.д.).",
-      blocks: [
-        {
-          title: "Поставщик услуг",
-          lines: ["Berlin Press", "Example Street 1", "10115 Berlin", "Germany"],
-        },
-        {
-          title: "Контакты",
-          lines: ["Email: hello@berlin-press.example", "Телефон: +49 (0) 000 000000"],
-        },
-        {
-          title: "Ответственный за контент",
-          lines: ["Имя Фамилия", "Адрес как выше"],
-        },
-      ],
-      note:
-        "Примечание: это шаблон Impressum. При необходимости согласуйте текст с юристом (особенно для DE/AT/CH).",
-      updated: "Обновлено: 21 февраля 2026",
-    },
   },
   terms: {
     de: {
@@ -129,35 +106,6 @@ export const LEGAL_TEMPLATES = {
       ],
       updated: "Last updated: February 21, 2026",
     },
-    ru: {
-      title: "Terms",
-      subtitle: "Условия использования",
-      intro:
-        "На этой странице — базовая структура условий использования. Пожалуйста, замените текст на финальную юридически проверенную версию.",
-      sections: [
-        {
-          title: "1. Область применения",
-          body:
-            "Эти условия применяются к использованию сайта и его материалов. Для заказов или отдельных сервисов могут действовать дополнительные условия.",
-        },
-        {
-          title: "2. Контент и авторские права",
-          body:
-            "Все материалы (тексты, изображения, графика) защищены авторским правом. Любое использование сверх разрешённого законом требует предварительного согласия.",
-        },
-        {
-          title: "3. Ответственность",
-          body:
-            "Мы стараемся предоставлять актуальную и точную информацию. Ответственность за полноту, точность и доступность ограничивается в рамках закона.",
-        },
-        {
-          title: "4. Контакты",
-          body:
-            "Если у вас есть вопросы по этим условиям, свяжитесь с нами по контактам, указанным в Impressum.",
-        },
-      ],
-      updated: "Обновлено: 21 февраля 2026",
-    },
   },
   privacy: {
     de: {
@@ -169,7 +117,7 @@ export const LEGAL_TEMPLATES = {
       cookiesIntro:
         "Wir verwenden ein funktionales Cookie, um Ihre Sprachpräferenz zu speichern, damit Sie diese nicht bei jedem Besuch erneut auswählen müssen.",
       cookiesPurpose: "Zweck",
-      cookiesPurposeValue: "Speichert die ausgewählte Sprache (z. B. en/de/ru).",
+      cookiesPurposeValue: "Speichert die ausgewählte Sprache (z. B. en/de).",
       cookiesLifetime: "Laufzeit",
       cookiesLifetimeValue: "Bis zu 1 Jahr.",
       cookiesType: "Typ",
@@ -187,7 +135,7 @@ export const LEGAL_TEMPLATES = {
       cookiesIntro:
         "We use a functional cookie to remember your language preference so you don’t have to re-select it on each visit.",
       cookiesPurpose: "Purpose",
-      cookiesPurposeValue: "Stores the selected language (e.g. en/de/ru).",
+      cookiesPurposeValue: "Stores the selected language (e.g. en/de).",
       cookiesLifetime: "Lifetime",
       cookiesLifetimeValue: "Up to 1 year.",
       cookiesType: "Type",
@@ -195,24 +143,6 @@ export const LEGAL_TEMPLATES = {
       note:
         "We do not use advertising or analytics cookies at the moment. This is a simplified notice and not legal advice.",
       updated: "Last updated: February 21, 2026",
-    },
-    ru: {
-      title: "Privacy",
-      subtitle: "Privacy & cookies",
-      intro:
-        "Мы уважаем вашу приватность. На этой странице кратко описано, какие данные обрабатываются и что сохраняется в вашем браузере при использовании сайта.",
-      cookiesTitle: "Cookies",
-      cookiesIntro:
-        "Мы используем функциональный cookie, чтобы запомнить выбранный язык — чтобы не выбирать его каждый раз заново.",
-      cookiesPurpose: "Назначение",
-      cookiesPurposeValue: "Сохраняет выбранный язык (например en/de/ru).",
-      cookiesLifetime: "Срок хранения",
-      cookiesLifetimeValue: "До 1 года.",
-      cookiesType: "Тип",
-      cookiesTypeValue: "Функциональный / строго необходимый.",
-      note:
-        "Сейчас мы не используем рекламные или аналитические cookies. Это упрощённое уведомление и не является юридической консультацией.",
-      updated: "Обновлено: 21 февраля 2026",
     },
   },
 } as const;

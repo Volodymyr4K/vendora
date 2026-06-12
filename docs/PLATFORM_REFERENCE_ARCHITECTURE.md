@@ -1,229 +1,229 @@
-# Еталонна структура платформи: універсальна система під багато бізнесів
+# Platform Reference Architecture: a universal system for many business types
 
-**Версія:** 1.2  
-**Дата оновлення:** 28.01.2026
+**Version:** 1.2
+**Last updated:** 2026-01-28
 
-Концептуальна записка (без коду). Об’єднує початкову концепцію з покращеннями: **BaseType + Capabilities/Facets**, **Item vs Offer**, **платформенні модулі vs доменні capabilities**, **нормалізований кістяк замовлень**, **Location + fulfillment facets**, **інтеграції**.
+A conceptual note (no code). It merges the original concept with later improvements: **BaseType + Capabilities/Facets**, **Item vs Offer**, **platform modules vs domain capabilities**, a **normalized order skeleton**, **Location + fulfillment facets**, and **integrations**.
 
-**Оновлення v1.2:** Додано узгодження з поточною схемою: роль **Category–Branch (M:N)** та політика **Order–Branch** (slug vs id); у місцях з кількома варіантами зазначено «варіанти на вибір». Детально — Додаток А.
-
----
-
-## 1. Базові принципи
-
-- **Жорстка мультитенантність**
-  - `tenantId` у всіх бізнесових таблицях.
-  - Канонічні ключі: `@@unique([tenantId, slug])`, `[tenantId, externalId]` тощо.
-  - Усі запити з бекенду — з селектором tenantId.
-
-- **BaseType + Capabilities, без “бізнес-типів”**
-  - **baseType** — малий фіксований enum, який не росте по вертикалях:
-    - `GOOD` (фізичний товар)
-    - `SERVICE` (послуга)
-    - `DIGITAL` (цифровий товар/підписка) — опційно
-    - `BUNDLE` (набір) — опційно
-  - **Capabilities** — що дозволено/увімкнено:
-    - на рівні **tenant** (`tenantCapabilities`): які фічі доступні цьому бізнесу.
-    - на рівні **item/variant** (`itemCapabilities`): які можливості увімкнено для конкретної позиції.
-  - Ключі capabilities — рядки/довідник, не enum у БД: `inventory`, `modifiers`, `nutrition`, `allergens`, `delivery`, `booking`, `fitment`, `serial_numbers`, `digital_delivery` тощо.
-  - **Новий “тип бізнесу”** = вмикаєш відповідні capabilities, не додаєш новий `kind`.
-
-- **Facets за можливостями, не за індустріями**
-  - Розширення — не “FoodItemDetails / RetailItemDetails”, а **таблиці-фасети по можливостях**:
-    - `ItemNutritionFacet`, `ItemAllergenFacet`, `ItemInventoryFacet`, `ItemFitmentFacet`, `ItemBarcodeFacet` тощо.
-  - Інваріант: facet можна створювати лише якщо у tenant увімкнений відповідний capability і (опційно) baseType сумісний.
-
-- **Модулі: платформенні vs доменні**
-  - **Платформенні модулі (великі):** `checkout-core`, `payment-core`, `customer-core`, `auth`, `crm-lite`, `integrations` — спільна інфраструктура.
-  - **Доменні capabilities (дрібні):** `inventory`, `delivery-slots`, `modifiers`, `booking`, `fitment` — перемикачі поведінки + facets + роутинг. Не плутати “модуль = бізнес”.
+**v1.2 update:** Added alignment with the current schema: the role of **Category–Branch (M:N)** and the **Order–Branch** policy (slug vs id); where multiple options exist, they are marked as "options to choose from". Details in Appendix A.
 
 ---
 
-## 2. Ядро каталогу: Item vs Offer (listings)
+## 1. Core principles
 
-### 2.1 CatalogItem (універсальний товар/послуга)
+- **Strict multi-tenancy**
+  - `tenantId` on every business table.
+  - Canonical keys: `@@unique([tenantId, slug])`, `[tenantId, externalId]`, etc.
+  - Every backend query carries a tenantId selector.
 
-- **Ідентифікація:** `id`, `tenantId`, `slug` (tenant-scoped), `createdAt` / `updatedAt`.
-- **Класифікація:**
-  - `baseType`: `GOOD` | `SERVICE` | `DIGITAL` | `BUNDLE` (малий enum, не росте). *Є варіанти на вибір: на старті обмежити до GOOD + SERVICE, якщо DIGITAL/BUNDLE не в найближчому roadmap.*
-  - Зв’язки: категорії/колекції/теги (join-таблиці). *Узгодження з поточною схемою (Category–Branch M:N) — Додаток А.*
-- **Опис:** `name`/`title`, короткий `description`.
-- **Статус:** `status` (ACTIVE/ARCHIVED), без прив’язки до конкретної локації.
-- **Ціноутворення “база”:** опційно `basePriceCents`, `currency`, `taxCategory` — як референс; реальна ціна/наявність на рівні **Offer**.
-- **Інтеграції:** `externalRef` / `posId` (якщо потрібно).
+- **BaseType + Capabilities, no "business types"**
+  - **baseType** — a small fixed enum that does not grow per vertical:
+    - `GOOD` (physical product)
+    - `SERVICE` (service)
+    - `DIGITAL` (digital product/subscription) — optional
+    - `BUNDLE` (set) — optional
+  - **Capabilities** — what is allowed/enabled:
+    - at the **tenant** level (`tenantCapabilities`): which features this business can use.
+    - at the **item/variant** level (`itemCapabilities`): which capabilities are enabled for a specific item.
+  - Capability keys are strings/a registry, not a DB enum: `inventory`, `modifiers`, `nutrition`, `allergens`, `delivery`, `booking`, `fitment`, `serial_numbers`, `digital_delivery`, etc.
+  - A **new "business type"** = enabling the right capabilities, not adding a new `kind`.
 
-**Правило:** у CatalogItem немає “харчових” чи “книжкових” полів — лише baseType і зв’язки з facets за capabilities.
+- **Facets by capability, not by industry**
+  - Extensions are not "FoodItemDetails / RetailItemDetails" but **facet tables per capability**:
+    - `ItemNutritionFacet`, `ItemAllergenFacet`, `ItemInventoryFacet`, `ItemFitmentFacet`, `ItemBarcodeFacet`, etc.
+  - Invariant: a facet may only be created if the tenant has the matching capability enabled and (optionally) the baseType is compatible.
 
-### 2.2 ItemVariant (варіації)
+- **Modules: platform vs domain**
+  - **Platform modules (large):** `checkout-core`, `payment-core`, `customer-core`, `auth`, `crm-lite`, `integrations` — shared infrastructure.
+  - **Domain capabilities (small):** `inventory`, `delivery-slots`, `modifiers`, `booking`, `fitment` — behavior switches + facets + routing. Do not confuse "module = business".
+
+---
+
+## 2. Catalog core: Item vs Offer (listings)
+
+### 2.1 CatalogItem (universal product/service)
+
+- **Identity:** `id`, `tenantId`, `slug` (tenant-scoped), `createdAt` / `updatedAt`.
+- **Classification:**
+  - `baseType`: `GOOD` | `SERVICE` | `DIGITAL` | `BUNDLE` (small enum, never grows). *Options to choose from: at the start, restrict to GOOD + SERVICE if DIGITAL/BUNDLE are not on the near-term roadmap.*
+  - Relations: categories/collections/tags (join tables). *Alignment with the current schema (Category–Branch M:N) — Appendix A.*
+- **Description:** `name`/`title`, a short `description`.
+- **Status:** `status` (ACTIVE/ARCHIVED), not tied to any specific location.
+- **Base pricing:** optionally `basePriceCents`, `currency`, `taxCategory` — as a reference; the real price/availability lives at the **Offer** level.
+- **Integrations:** `externalRef` / `posId` (if needed).
+
+**Rule:** CatalogItem has no "food" or "book" fields — only baseType and links to capability-driven facets.
+
+### 2.2 ItemVariant (variations)
 
 - `tenantId`, `itemId`, `sku` (tenant-scoped).
-- Варіації: розмір/колір/фасування (атрибути або окремі поля).
-- Опційно: `priceDeltaCents` відносно бази; інакше ціна на рівні Offer.
-- `isAvailable` за замовчуванням; реальна наявність/залишки — на рівні Offer або InventoryFacet.
+- Variations: size/color/packaging (attributes or dedicated fields).
+- Optionally: `priceDeltaCents` relative to the base; otherwise the price lives at the Offer level.
+- `isAvailable` by default; real availability/stock lives at the Offer level or in an InventoryFacet.
 
-### 2.3 Offer / BranchListing (де і як продається)
+### 2.3 Offer / BranchListing (where and how it is sold)
 
-- **Призначення:** один і той самий item може бути доступний лише в частині філій; ціна/наявність/залишки різні по локаціях. Delivery/retail/service визначаються саме на рівні offer (каналу продажу).
+- **Purpose:** the same item may be available only in some branches; price/availability/stock differ per location. Delivery/retail/service semantics are defined at the offer (sales channel) level.
 
-- **Поля (концептуально):**
-  - `tenantId`, `branchId` (або `locationId`), `variantId` (або `itemId`).
-  - `priceCents`, `currency`, `isAvailable`, `stockPolicy` (якщо inventory), `leadTime`, `visibility`, `schedule` (часи видимості).
+- **Fields (conceptually):**
+  - `tenantId`, `branchId` (or `locationId`), `variantId` (or `itemId`).
+  - `priceCents`, `currency`, `isAvailable`, `stockPolicy` (when inventory is enabled), `leadTime`, `visibility`, `schedule` (visibility windows).
 
-- **Унікальність:** один variant не може мати два активні offers в одній філії з тими самими умовами (наприклад `@@unique([tenantId, branchId, variantId])` з обмеженням по типу offer).
+- **Uniqueness:** one variant cannot have two active offers in the same branch under the same terms (e.g. `@@unique([tenantId, branchId, variantId])` constrained by offer type).
 
-Це розділяє “що це взагалі таке” (CatalogItem + Variant) і “де і як це продається” (Offer).
-
----
-
-## 3. Facets (розширення по можливостях)
-
-- Кожна **capability** може мати одну або кілька **facet-таблиць**.
-- Приклади:
-  - **nutrition** → `ItemNutritionFacet` (1:1 до item): калорії, білки, жири, вуглеводи, тощо.
-  - **allergens** → `ItemAllergenFacet` (1:1 або N:M залежно від моделі).
-  - **inventory** → `ItemInventoryFacet` або прив’язка до variant/offer: залишки, резерви, склади.
-  - **fitment** → `ItemFitmentFacet` + `FitmentRule` (запчастини: сумісність, OEM).
-  - **barcode** → `ItemBarcodeFacet`: штрихкод, тип.
-  - **regulatory** → `ItemRegulatoryFacet`: сертифікати, країна походження (якщо потрібно).
-
-- У кожній facet-таблиці: `tenantId`, зв’язок з item (або variant/offer), доменні поля.
-- **Інваріанти:**
-  - Facet дозволено створювати лише якщо у tenant увімкнений відповідний capability.
-  - Опційно: обмеження по `baseType` (наприклад nutrition тільки для GOOD).
+This separates "what the thing is" (CatalogItem + Variant) from "where and how it is sold" (Offer).
 
 ---
 
-## 4. Керовані атрибути (AttributeDefinition / AttributeValue)
+## 3. Facets (capability-driven extensions)
+
+- Each **capability** may have one or more **facet tables**.
+- Examples:
+  - **nutrition** → `ItemNutritionFacet` (1:1 to item): calories, protein, fat, carbs, etc.
+  - **allergens** → `ItemAllergenFacet` (1:1 or N:M depending on the model).
+  - **inventory** → `ItemInventoryFacet` or a link to variant/offer: stock, reservations, warehouses.
+  - **fitment** → `ItemFitmentFacet` + `FitmentRule` (spare parts: compatibility, OEM).
+  - **barcode** → `ItemBarcodeFacet`: barcode, type.
+  - **regulatory** → `ItemRegulatoryFacet`: certificates, country of origin (if needed).
+
+- Each facet table carries: `tenantId`, a link to the item (or variant/offer), and the domain fields.
+- **Invariants:**
+  - A facet may only be created when the tenant has the matching capability enabled.
+  - Optionally: a `baseType` restriction (e.g. nutrition only for GOOD).
+
+---
+
+## 4. Managed attributes (AttributeDefinition / AttributeValue)
 
 - **AttributeDefinition (per tenant):**
-  - `tenantId`, `key`, `label`, `valueType` (string/number/bool/enum/date), валідатори.
-  - `appliesToBaseTypes` (GOOD/SERVICE/…) — для яких baseType атрибут доступний.
-  - `isFilterable`, `isSearchable` — індекси робити **лише для isFilterable**, щоб не роздувати БД.
+  - `tenantId`, `key`, `label`, `valueType` (string/number/bool/enum/date), validators.
+  - `appliesToBaseTypes` (GOOD/SERVICE/…) — which baseTypes the attribute applies to.
+  - `isFilterable`, `isSearchable` — create indexes **only for isFilterable** to avoid bloating the DB.
 
 - **AttributeValue (per item):**
-  - Є **варіанти на вибір:** типізовані колонки (`valueString`, `valueNumber`, …) + контроль “рівно одне заповнене” **або** один JSONB з типом (простіша схема, гірші індекси для чисел/дат).
-  - Індекси тільки для атрибутів з `isFilterable`.
+  - **Options to choose from:** typed columns (`valueString`, `valueNumber`, …) with an "exactly one populated" check, **or** a single JSONB with a type tag (simpler schema, worse indexes for numbers/dates).
+  - Indexes only for attributes with `isFilterable`.
 
-- **Правило “facet vs attribute”:**
-  - Потрібні індекси/унікальність/часті фільтри/жорстка бізнес-логіка → **facet-таблиця**.
-  - Рідкісне кастомне поле без жорстких вимог → **attribute**.
-
----
-
-## 5. Варіанти, опції, модифікатори
-
-- **OptionGroup / OptionItem** (модифікатори): tenant-scoped, прив’язка до item або категорії, правила min/max, ціна дельти. Для їжі — “додати сир”, “соус”; для послуг — “експрес” тощо.
-- **ItemVariant** — розмір/колір/фасування; Offer — де саме цей variant продається і за якою ціною.
+- **The "facet vs attribute" rule:**
+  - Needs indexes/uniqueness/frequent filters/strict business logic → a **facet table**.
+  - A rare custom field with no strict requirements → an **attribute**.
 
 ---
 
-## 6. Location (Branch) + Fulfillment facets
+## 5. Variants, options, modifiers
 
-- **Location** (або Branch) — нейтральна сутність:
-  - `tenantId`, `slug`, `name`, адреса, `timezone`, `status`, `workingSchedule`.
-  - Без “branch.kind = RESTAURANT/STORE” — різниця через **capabilities і facet-конфіги**.
-
-- **Fulfillment-конфіги (facets по можливостях):**
-  - `DeliveryConfigFacet` (1:1 до Location): зони, `deliveryFee`, `freeFrom`, `etaMin`/`etaMax`, слоти (minAdvance, prepTime, slotCapacity) тощо.
-  - `PickupConfigFacet`: умови самовивозу.
-  - `WarehouseConfigFacet`: якщо capability `inventory` — склади, резерви.
-  - `ServiceBookingConfigFacet`: якщо capability `booking` — слоти бронювання.
-
-- Tenant з capability `delivery-slots` отримує роути/логіку слотів і використовує `DeliveryConfigFacet`; без capability — ці поля не використовуються.
+- **OptionGroup / OptionItem** (modifiers): tenant-scoped, attached to an item or category, min/max rules, price deltas. For food — "add cheese", "sauce"; for services — "express", etc.
+- **ItemVariant** — size/color/packaging; the Offer defines where exactly this variant is sold and at what price.
 
 ---
 
-## 7. Замовлення: нормалізований кістяк + snapshot
+## 6. Location (Branch) + fulfillment facets
 
-- **Order** — заголовок: `tenantId`, `token`, `orderNumber`, `status`, `totalCents`, посилання на філію (`branchSlug` або `branchId` — *узгодження з поточною системою в Додатку А*), `customerId`, idempotency, timestamps.
-- **OrderLine** — рядки замовлення: `orderId`, `variantId` або `offerId`, `qty`, `priceCents`, `tax`, суми. Дозволяє аналітику, пошук, звіти без парсингу JSON. *У Фазі 1 — по `variantId`; у Фазі 2 канонічно — по `offerId` (політика переходу в Додатку А, якщо є фазовий план).*
-- **OrderAdjustment** — знижки, доставка, комісії: `orderId`, `type`, `amountCents`, `label`.
-- **Fulfillment** — окрема сутність: тип (delivery/pickup/booking), адреса/слот/посилання, статус, `requestedTime`, `fulfilledAt`. Зв’язок з Order **1:1 або 1:N** — є варіанти на вибір залежно від моделі (один спосіб доставки на замовлення vs кілька).
+- **Location** (or Branch) is a neutral entity:
+  - `tenantId`, `slug`, `name`, address, `timezone`, `status`, `workingSchedule`.
+  - No "branch.kind = RESTAURANT/STORE" — the difference comes from **capabilities and facet configs**.
 
-- **Payload (snapshot)** — залишається як “джерело правди після покупки”: незмінний JSON з повним станом замовлення на момент створення. Читання для аналітики/пошуку/помилок — по **нормалізованому кістяку** (Order + OrderLine + OrderAdjustment + Fulfillment), а не тільки по payload.
+- **Fulfillment configs (capability facets):**
+  - `DeliveryConfigFacet` (1:1 to Location): zones, `deliveryFee`, `freeFrom`, `etaMin`/`etaMax`, slots (minAdvance, prepTime, slotCapacity), etc.
+  - `PickupConfigFacet`: pickup terms.
+  - `WarehouseConfigFacet`: with the `inventory` capability — warehouses, reservations.
+  - `ServiceBookingConfigFacet`: with the `booking` capability — booking slots.
 
----
-
-## 8. Інтеграції з POS/ERP
-
-- Закласти в модель одразу, без прив’язки до одного вендора:
-  - **ExternalConnection:** `tenantId`, `provider`, посилання на credentials (ref), `status`.
-  - **ExternalMapping:** `tenantId`, `provider`, `entityType`, `externalId`, `internalId` — відповідність зовнішніх і внутрішніх сутностей.
-  - **SyncState / SyncCursor:** інкрементальна синхронізація (курсори, lastSyncAt).
-
-- Навіть якщо POS/ERP — “джерело” для каталогу/цін, платформі потрібні:
-  - **Offer/Listing** — свої канали, своя доступність, свій UI.
-  - **Snapshot замовлення** і нормалізований кістяк — гарантії multi-tenant і консистентність.
+- A tenant with the `delivery-slots` capability gets the slot routes/logic and uses `DeliveryConfigFacet`; without the capability these fields are unused.
 
 ---
 
-## 9. Ізоляція, індекси, інваріанти
+## 7. Orders: normalized skeleton + snapshot
 
-- **Tenant:** усі таблиці з `tenantId`; канонічні унікальні ключі `[tenantId, …]`.
-- **Індекси:** під часті запити (статистика, фільтри): Order — `[tenantId, status]`, `[tenantId, branchId, createdAt]`; CatalogItem — `[tenantId, baseType]`, `[tenantId, categoryId]`; Offer — `[tenantId, branchId]`, `[tenantId, variantId]`. AttributeValue — лише для `isFilterable`.
-- **Інваріанти:** capability ↔ facet (facet існує лише при увімкненому capability); baseType ↔ допустимі facets/attributes; OrderLine/OrderAdjustment/Fulfillment узгоджені з Order.
+- **Order** — the header: `tenantId`, `token`, `orderNumber`, `status`, `totalCents`, a branch reference (`branchSlug` or `branchId` — *alignment with the current system in Appendix A*), `customerId`, idempotency, timestamps.
+- **OrderLine** — the order lines: `orderId`, `variantId` or `offerId`, `qty`, `priceCents`, `tax`, totals. Enables analytics, search and reports without parsing JSON. *Phase 1 — by `variantId`; Phase 2 canonically — by `offerId` (the migration policy is in Appendix A when a phased plan exists).*
+- **OrderAdjustment** — discounts, delivery, fees: `orderId`, `type`, `amountCents`, `label`.
+- **Fulfillment** — a separate entity: type (delivery/pickup/booking), address/slot/reference, status, `requestedTime`, `fulfilledAt`. The relation to Order is **1:1 or 1:N** — options to choose from depending on the model (one fulfillment method per order vs several).
 
----
-
-## 10. Короткий звіт змін відносно початкової концепції
-
-| Аспект | Було | Стало (еталон) |
-|--------|------|-----------------|
-| Тип предмета | `kind = FOOD/RETAIL/...` | `baseType` (GOOD/SERVICE/DIGITAL/BUNDLE) + **Capabilities** |
-| Розширення | За індустріями (FoodItemDetails, RetailItemDetails) | **Facets за можливостями** (Nutrition, Allergen, Inventory, Fitment, Barcode…) |
-| Ціна/наявність | На рівні CatalogItem або Branch | **Offer/BranchListing** між item/variant і продажем |
-| Замовлення | Переважно payload | **Order + OrderLine + OrderAdjustment + Fulfillment** + payload як доповнення |
-| Branch | Branch з kind або доменними полями | **Location** + **fulfillment facets** (DeliveryConfig, PickupConfig, WarehouseConfig, BookingConfig) |
-| Модулі | Загальні “модулі” | **Платформенні** (checkout, payment, auth, crm-lite) vs **доменні capabilities** (inventory, delivery-slots, booking, fitment) |
-| Атрибути | AttributeDefinition/Value | + `appliesToBaseTypes`, типізовані колонки, індекси лише для `isFilterable` |
-| Інтеграції | externalRef/posId на сутностях | + **ExternalConnection**, **ExternalMapping**, **SyncState** |
-
-Ця структура дає універсальну БД без росту enum по “бізнесах”, масштабування по **можливостях** (capabilities/facets), чітке розділення Item vs Offer і нормалізований кістяк замовлень при збереженні snapshot, а також чітку роль платформенних модулів і доменних capabilities.
+- **Payload (snapshot)** remains the "source of truth after purchase": an immutable JSON with the full order state at creation time. Reads for analytics/search/debugging go through the **normalized skeleton** (Order + OrderLine + OrderAdjustment + Fulfillment), not only the payload.
 
 ---
 
-## Додаток А. Узгодження з поточною системою
+## 8. POS/ERP integrations
 
-Цей розділ фіксує рішення щодо елементів, які в поточній схемі вже є і мають бути узгоджені з еталоном без конфліктів. Де є кілька варіантів — зазначено **варіанти на вибір**.
+- Built into the model from the start, without binding to a single vendor:
+  - **ExternalConnection:** `tenantId`, `provider`, a credentials reference (ref), `status`.
+  - **ExternalMapping:** `tenantId`, `provider`, `entityType`, `externalId`, `internalId` — the mapping between external and internal entities.
+  - **SyncState / SyncCursor:** incremental sync (cursors, lastSyncAt).
 
-### А.1 Category–Branch (M:N)
-
-**Поточна ситуація:** У системі є зв’язок «категорія–філія» (M:N): які категорії показуються в якій філії (меню/асортимент по локаціях).
-
-**Рішення:**
-
-- **Залишити Category–Branch M:N** і визначити його роль як **«видимість асортименту (меню) по локаціях»** — тобто *які категорії показувати в якій філії*, незалежно від наявності Offer.
-- **Offer** залишається сутністю **«конкретна позиція продажу»**: (branch, variant, ціна, наявність, видимість).
-- Тобто:
-  - **Category–Branch** = «у цій філії показуємо ці категорії» (структура меню/фільтрів, можливо порожні категорії).
-  - **Offer** = «у цій філії цей variant реально продається за такою ціною і з такою наявністю».
-
-**Фази:**
-
-- **Фаза 1:** Category–Branch не змінюємо, використовуємо як є.
-- **Фаза 2:** Після впровадження Offer — **є два варіанти на вибір:**
-  - **Варіант 1 (м’який):** Category–Branch і Offer незалежні. Можна мати категорію, видиму у філії, без жодного Offer (наприклад «скоро»), і навпаки.
-  - **Варіант 2 (строгий):** Інваріант: «Offer для (branch, variant) дозволено створювати лише якщо категорія відповідного item видима в цій branch». Category–Branch тоді стає обмеженням для створення Offer. Реалізація — перевірка в коді або constraint за потреби.
-
-**Що записати в документ/контракт:** Обраний варіант (м’який або строгий) зафіксувати після рішення команди; до того можна працювати за м’яким варіантом.
+- Even when a POS/ERP is the "source" for catalog/prices, the platform still needs:
+  - **Offer/Listing** — its own channels, its own availability, its own UI.
+  - The **order snapshot** and the normalized skeleton — multi-tenant guarantees and consistency.
 
 ---
 
-### А.2 Order–Branch: посилання на філію (slug vs id)
+## 9. Isolation, indexes, invariants
 
-**Поточна ситуація:** У Order зберігається `branchSlug`. В еталоні згадується `branchId`/`locationId`.
-
-**Рішення:**
-
-- **Фаза 1:** Канонічним залишається **branchSlug** (tenant-scoped ідентифікатор, як у поточній системі). Order посилається на Branch через `branchSlug`.
-- **Фаза 2:** За потреби можна додати **branchId** (FK на Branch.id) для жорсткої цілісності та простіших JOIN; `branchSlug` залишити для відображення/API. Міграція: заповнити `branchId` за існуючими `branchSlug`, далі заповнювати при нових замовленнях.
-
-**Що записати в документ:** У Фазі 1 Order посилається на філію через `branchSlug`; у Фазі 2 за бажанням додати `branchId` з міграцією даних.
+- **Tenant:** all tables carry `tenantId`; canonical unique keys are `[tenantId, …]`.
+- **Indexes:** for frequent queries (stats, filters): Order — `[tenantId, status]`, `[tenantId, branchId, createdAt]`; CatalogItem — `[tenantId, baseType]`, `[tenantId, categoryId]`; Offer — `[tenantId, branchId]`, `[tenantId, variantId]`. AttributeValue — only for `isFilterable`.
+- **Invariants:** capability ↔ facet (a facet exists only with the capability enabled); baseType ↔ allowed facets/attributes; OrderLine/OrderAdjustment/Fulfillment consistent with the Order.
 
 ---
 
-### А.3 Інші узгодження (коротко)
+## 10. Summary of changes vs the original concept
 
-- **Tenant.features (JSON):** Вже є в схемі (`version`, `modules`, `limits`, `integrations`). `tenantCapabilities` у Фазі 1 зберігати тут (наприклад `features.capabilities` або використання `modules`) — окремої таблиці не потрібно.
-- **Branch:** Поля доставки/слотів залишаються на Branch у Фазі 1; винесення в DeliveryConfigFacet — за потреби у Фазі 2.
-- **Product → CatalogItem:** Міграція Product у CatalogItem (додати baseType, status, опційно basePriceCents); доменні поля типу weightG виносити у відповідні facets (наприклад nutrition) за планом фаз.
+| Aspect | Before | After (reference) |
+|--------|--------|-------------------|
+| Item type | `kind = FOOD/RETAIL/...` | `baseType` (GOOD/SERVICE/DIGITAL/BUNDLE) + **Capabilities** |
+| Extensions | Per industry (FoodItemDetails, RetailItemDetails) | **Facets per capability** (Nutrition, Allergen, Inventory, Fitment, Barcode…) |
+| Price/availability | On CatalogItem or Branch | **Offer/BranchListing** between item/variant and the sale |
+| Orders | Mostly payload | **Order + OrderLine + OrderAdjustment + Fulfillment** + payload as a supplement |
+| Branch | Branch with kind or domain fields | **Location** + **fulfillment facets** (DeliveryConfig, PickupConfig, WarehouseConfig, BookingConfig) |
+| Modules | Generic "modules" | **Platform** (checkout, payment, auth, crm-lite) vs **domain capabilities** (inventory, delivery-slots, booking, fitment) |
+| Attributes | AttributeDefinition/Value | + `appliesToBaseTypes`, typed columns, indexes only for `isFilterable` |
+| Integrations | externalRef/posId on entities | + **ExternalConnection**, **ExternalMapping**, **SyncState** |
+
+This structure provides a universal DB without enum growth per "business", scaling by **capabilities** (capabilities/facets), a clear Item vs Offer separation and a normalized order skeleton alongside the snapshot, plus a clear split between platform modules and domain capabilities.
+
+---
+
+## Appendix A. Alignment with the current system
+
+This section records the decisions for elements that already exist in the current schema and must align with the reference without conflicts. Where several options exist, they are marked as **options to choose from**.
+
+### A.1 Category–Branch (M:N)
+
+**Current state:** The system has a "category–branch" (M:N) relation: which categories are shown in which branch (menu/assortment per location).
+
+**Decision:**
+
+- **Keep Category–Branch M:N** and define its role as **"assortment (menu) visibility per location"** — i.e. *which categories to show in which branch*, independent of Offer existence.
+- **Offer** remains the entity for a **"concrete sales position"**: (branch, variant, price, availability, visibility).
+- In other words:
+  - **Category–Branch** = "in this branch we show these categories" (menu/filter structure, possibly empty categories).
+  - **Offer** = "in this branch this variant is actually sold at this price with this availability".
+
+**Phases:**
+
+- **Phase 1:** Category–Branch stays as is.
+- **Phase 2:** After introducing Offer — **two options to choose from:**
+  - **Option 1 (soft):** Category–Branch and Offer are independent. A category may be visible in a branch with no Offer at all (e.g. "coming soon"), and vice versa.
+  - **Option 2 (strict):** Invariant: "An Offer for (branch, variant) may only be created if the corresponding item's category is visible in that branch". Category–Branch then becomes a constraint on Offer creation. Implemented as a code check or a constraint as needed.
+
+**To record in the doc/contract:** Fix the chosen option (soft or strict) after the team decides; until then the soft option applies.
+
+---
+
+### A.2 Order–Branch: branch reference (slug vs id)
+
+**Current state:** Order stores `branchSlug`. The reference model mentions `branchId`/`locationId`.
+
+**Decision:**
+
+- **Phase 1:** **branchSlug** stays canonical (a tenant-scoped identifier, as in the current system). Order references Branch via `branchSlug`.
+- **Phase 2:** If needed, add **branchId** (FK to Branch.id) for hard integrity and simpler JOINs; keep `branchSlug` for display/API. Migration: backfill `branchId` from existing `branchSlug`, then populate it for new orders.
+
+**To record in the doc:** In Phase 1 Order references the branch via `branchSlug`; in Phase 2 optionally add `branchId` with a data migration.
+
+---
+
+### A.3 Other alignments (brief)
+
+- **Tenant.features (JSON):** Already in the schema (`version`, `modules`, `limits`, `integrations`). In Phase 1, store `tenantCapabilities` here (e.g. `features.capabilities` or reuse `modules`) — no separate table needed.
+- **Branch:** Delivery/slot fields stay on Branch in Phase 1; extracting them into DeliveryConfigFacet — as needed in Phase 2.
+- **Product → CatalogItem:** Migrate Product into CatalogItem (add baseType, status, optionally basePriceCents); move domain fields like weightG into the matching facets (e.g. nutrition) per the phase plan.

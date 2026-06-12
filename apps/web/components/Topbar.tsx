@@ -23,7 +23,7 @@ export function SiteTopbar() {
 
         <nav className="nav">
           <a className="btn" href={tenantHref(routingContext, "/choose-city")}>
-            Обрати місто
+            Choose city
           </a>
           <a className="btn" href={tenantHref(routingContext, "/privacy")}>
             Privacy
@@ -57,19 +57,19 @@ export function BranchTopbar(props: { cfg: BranchConfig; tenantSlug?: string }) 
           <div className="logo" />
           <div style={{ display: "grid" }}>
             <div className="brandTitle">{brandName} • {cfg.cityName}</div>
-            <div className="brandSubtitle">{formatTodayHours(cfg.workingSchedule) !== "Графік" ? `${formatTodayHours(cfg.workingSchedule)} • ` : ""}{cfg.address ?? ""}</div>
+            <div className="brandSubtitle">{formatTodayHours(cfg.workingSchedule) !== "Hours" ? `${formatTodayHours(cfg.workingSchedule)} • ` : ""}{cfg.address ?? ""}</div>
           </div>
         </a>
 
         <nav className="nav">
           {menuEnabled && (
             <a className="btn" href={storefrontHref(routingContext, "/menu", { explicitBranchSlug: cfg.slug })}>
-              Каталог
+              Catalog
             </a>
           )}
           {deliveryEnabled && (
             <a className="btn" href={storefrontHref(routingContext, "/delivery", { explicitBranchSlug: cfg.slug })}>
-              Доставка
+              Delivery
             </a>
           )}
 
@@ -81,13 +81,13 @@ export function BranchTopbar(props: { cfg: BranchConfig; tenantSlug?: string }) 
           )}
 
           <a className="btn" href={tenantHref(routingContext, "/choose-city")}>
-            Місто
+            City
           </a>
 
           {/* Profile - visible by default, hidden only if explicitly disabled */}
           {profileEnabled && (
             <a className="btn" href={profileHref}>
-              Кабінет
+              Account
             </a>
           )}
 

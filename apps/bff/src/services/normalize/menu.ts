@@ -75,7 +75,7 @@ export function normalizeMenu(rawInput: unknown, opts: NormalizeOpts) {
     if (Array.isArray(categoriesRaw) && !Array.isArray(itemsRaw)) {
       const cats = categoriesRaw as RawCategory[];
       const categories = cats.map((c) => {
-        const title = pickStr(c, ["title", "name", "label"]) ?? "Категорія";
+        const title = pickStr(c, ["title", "name", "label"]) ?? "Category";
         const id = pickStr(c, ["id", "categoryId", "uid"]) ?? slugify(title);
         const slug = pickStr(c, ["slug", "code"]) ?? slugify(pickStr(c, ["id"]) ?? title);
         return { id, slug, title };
@@ -84,14 +84,14 @@ export function normalizeMenu(rawInput: unknown, opts: NormalizeOpts) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const items: any[] = [];
       for (const c of cats) {
-        const catTitle = pickStr(c, ["title", "name", "label"]) ?? "Категорія";
+        const catTitle = pickStr(c, ["title", "name", "label"]) ?? "Category";
         const catSlug = pickStr(c, ["slug", "code"]) ?? slugify(pickStr(c, ["id"]) ?? catTitle);
 
         const nested = (c?.items ?? c?.products ?? c?.goods ?? c?.children) as RawItem[] | undefined;
         if (!Array.isArray(nested)) continue;
 
         for (const it of nested) {
-          const title = pickStr(it, ["title", "name", "label"]) ?? "Позиція";
+          const title = pickStr(it, ["title", "name", "label"]) ?? "Item";
           const id = pickStr(it, ["id", "sku", "productId", "uid"]) ?? stableId([catSlug, title, String(pickAny(it, ["price", "cost"]))]);
           const price = toNumber(pickAny(it, ["price", "cost", "amount", "priceUah"])) ?? 0;
 
@@ -113,7 +113,7 @@ export function normalizeMenu(rawInput: unknown, opts: NormalizeOpts) {
     // Case B continued: separate arrays
     if (Array.isArray(categoriesRaw) && Array.isArray(itemsRaw)) {
       const categories = (categoriesRaw as RawCategory[]).map((c) => {
-        const title = pickStr(c, ["title", "name", "label"]) ?? "Категорія";
+        const title = pickStr(c, ["title", "name", "label"]) ?? "Category";
         const id = pickStr(c, ["id", "categoryId", "uid"]) ?? slugify(title);
         const slug = pickStr(c, ["slug", "code"]) ?? slugify(pickStr(c, ["id"]) ?? title);
         return { id, slug, title };
@@ -131,7 +131,7 @@ export function normalizeMenu(rawInput: unknown, opts: NormalizeOpts) {
       }
 
       const items = (itemsRaw as RawItem[]).map((it) => {
-        const title = pickStr(it, ["title", "name", "label"]) ?? "Позиція";
+        const title = pickStr(it, ["title", "name", "label"]) ?? "Item";
         const id = pickStr(it, ["id", "sku", "productId", "uid"]) ?? stableId([title, String(pickAny(it, ["price", "cost"]))]);
         const price = toNumber(pickAny(it, ["price", "cost", "amount", "priceUah"])) ?? 0;
 
@@ -160,9 +160,9 @@ export function normalizeMenu(rawInput: unknown, opts: NormalizeOpts) {
     // Case D: raw is an array of items (no categories)
     if (Array.isArray(raw)) {
       const categorySlug = "menu";
-      const categories = [{ id: categorySlug, slug: categorySlug, title: "Меню" }];
+      const categories = [{ id: categorySlug, slug: categorySlug, title: "Menu" }];
       const items = (raw as RawItem[]).map((it) => {
-        const title = pickStr(it, ["title", "name", "label"]) ?? "Позиція";
+        const title = pickStr(it, ["title", "name", "label"]) ?? "Item";
         const id = pickStr(it, ["id", "sku", "productId", "uid"]) ?? stableId([title, String(pickAny(it, ["price", "cost"]))]);
         const price = toNumber(pickAny(it, ["price", "cost", "amount", "priceUah"])) ?? 0;
         return {

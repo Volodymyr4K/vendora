@@ -190,9 +190,9 @@ export function FeatureManagement({ tenant }: FeatureManagementProps) {
                 </div>
             )}
 
-            {/* ACCESS_LEVELS Phase 4.1: Two blocks — Public and Admin (plan: «Публічні модулі» і «Адмін-модулі») */}
-            <h2 className="text-lg font-semibold text-ink">Публічні модулі</h2>
-            <p className="text-sm text-muted mb-4">Модулі storefront для клієнтів (меню, профіль, замовлення, доставка).</p>
+            {/* ACCESS_LEVELS Phase 4.1: Two blocks — Public and Admin (plan: "Public modules" and "Admin modules") */}
+            <h2 className="text-lg font-semibold text-ink">Public modules</h2>
+            <p className="text-sm text-muted mb-4">Storefront modules for customers (menu, profile, orders, delivery).</p>
             {/* Profile & Account Category */}
             <div className="bg-paper rounded-theme shadow-theme p-6 border border-line">
                 <div className="border-b border-line pb-4 mb-4">
@@ -323,9 +323,9 @@ export function FeatureManagement({ tenant }: FeatureManagementProps) {
             </div>
 
             {/* ACCESS_LEVELS Phase 4.1: Admin modules block */}
-            <h2 className="text-lg font-semibold text-ink mt-8">Адмін-модулі</h2>
+            <h2 className="text-lg font-semibold text-ink mt-8">Admin modules</h2>
             <p className="text-sm text-muted mb-4">
-                Модулі адмін-панелі бренду. Вимкнений модуль недоступний навіть власнику бренду (Gate №1). Валідація по канонічному списку (contracts).
+                Brand admin panel modules. A disabled module is unavailable even to the brand owner (Gate #1). Validated against the canonical list (contracts).
             </p>
             <div className="bg-paper rounded-theme shadow-theme p-6 border border-line">
                 <div className="grid gap-3 sm:grid-cols-2">

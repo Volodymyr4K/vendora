@@ -734,13 +734,13 @@ export default function SuperAdminPage() {
                                             value={formData.timezone}
                                             onChange={(e) => setFormData({ ...formData, timezone: e.target.value })}
                                             options={[
-                                                { value: "Europe/Kiev", label: "🇺🇦 Kyiv (UTC+2, літом +3)" },
-                                                { value: "Europe/Berlin", label: "🇩🇪 Berlin (UTC+1, літом +2)" },
-                                                { value: "Europe/Warsaw", label: "🇵🇱 Warsaw (UTC+1, літом +2)" },
-                                                { value: "America/New_York", label: "🇺🇸 New York (UTC-5, літом -4)" },
-                                                { value: "America/Chicago", label: "🇺🇸 Chicago (UTC-6, літом -5)" },
-                                                { value: "America/Los_Angeles", label: "🇺🇸 Los Angeles (UTC-8, літом -7)" },
-                                                { value: "Europe/London", label: "🇬🇧 London (UTC+0, літом +1)" },
+                                                { value: "Europe/Kiev", label: "🇺🇦 Kyiv (UTC+2, DST +3)" },
+                                                { value: "Europe/Berlin", label: "🇩🇪 Berlin (UTC+1, DST +2)" },
+                                                { value: "Europe/Warsaw", label: "🇵🇱 Warsaw (UTC+1, DST +2)" },
+                                                { value: "America/New_York", label: "🇺🇸 New York (UTC-5, DST -4)" },
+                                                { value: "America/Chicago", label: "🇺🇸 Chicago (UTC-6, DST -5)" },
+                                                { value: "America/Los_Angeles", label: "🇺🇸 Los Angeles (UTC-8, DST -7)" },
+                                                { value: "Europe/London", label: "🇬🇧 London (UTC+0, DST +1)" },
                                             ]}
                                         />
                                     </div>
@@ -895,13 +895,13 @@ export default function SuperAdminPage() {
                                         value={editFormData.timezone}
                                         onChange={(e) => setEditFormData({ ...editFormData, timezone: e.target.value })}
                                         options={[
-                                            { value: "Europe/Kiev", label: "🇺🇦 Kyiv (UTC+2, літом +3)" },
-                                            { value: "Europe/Berlin", label: "🇩🇪 Berlin (UTC+1, літом +2)" },
-                                            { value: "Europe/Warsaw", label: "🇵🇱 Warsaw (UTC+1, літом +2)" },
-                                            { value: "America/New_York", label: "🇺🇸 New York (UTC-5, літом -4)" },
-                                            { value: "America/Chicago", label: "🇺🇸 Chicago (UTC-6, літом -5)" },
-                                            { value: "America/Los_Angeles", label: "🇺🇸 Los Angeles (UTC-8, літом -7)" },
-                                            { value: "Europe/London", label: "🇬🇧 London (UTC+0, літом +1)" },
+                                            { value: "Europe/Kiev", label: "🇺🇦 Kyiv (UTC+2, DST +3)" },
+                                            { value: "Europe/Berlin", label: "🇩🇪 Berlin (UTC+1, DST +2)" },
+                                            { value: "Europe/Warsaw", label: "🇵🇱 Warsaw (UTC+1, DST +2)" },
+                                            { value: "America/New_York", label: "🇺🇸 New York (UTC-5, DST -4)" },
+                                            { value: "America/Chicago", label: "🇺🇸 Chicago (UTC-6, DST -5)" },
+                                            { value: "America/Los_Angeles", label: "🇺🇸 Los Angeles (UTC-8, DST -7)" },
+                                            { value: "Europe/London", label: "🇬🇧 London (UTC+0, DST +1)" },
                                         ]}
                                     />
                                 </div>

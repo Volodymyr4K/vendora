@@ -55,7 +55,7 @@ export async function routesDelivery(
             }
 
             if (!branch.isActive) {
-              return { mode: "fallback", message: "Заклад тимчасово не працює." };
+              return { mode: "fallback", message: "The venue is temporarily closed." };
             }
 
             return {

@@ -118,7 +118,7 @@ export async function routesCheckout(app: FastifyInstance, deps: Deps) {
       { swr: deps.swr }
     );
     const deliveryParsed = zDeliveryResponse.safeParse(delR.data);
-    const delivery = deliveryParsed.success ? deliveryParsed.data : { mode: "fallback" as const, message: "Уточніть умови доставки." };
+    const delivery = deliveryParsed.success ? deliveryParsed.data : { mode: "fallback" as const, message: "Please confirm delivery terms." };
 
     const dbMap = new Map(dbItems.map(p => [p.id, p]));
     const lines: Array<{ id: string; name: string; qty: number; unitPrice: number; lineTotal: number }> = [];
@@ -164,7 +164,7 @@ export async function routesCheckout(app: FastifyInstance, deps: Deps) {
       }
     } else {
       mode = "fallback";
-      message = delivery.message || "Уточніть умови доставки.";
+      message = delivery.message || "Please confirm delivery terms.";
     }
 
     const totalCents = subtotalCents + deliveryFeeCents;
@@ -640,7 +640,7 @@ export async function routesCheckout(app: FastifyInstance, deps: Deps) {
                     orderId: createdOrder.id,
                     type: "delivery_fee",
                     amountCents: deliveryFeeCents,
-                    label: "Доставка"
+                    label: "Delivery"
                   }
                 });
               }

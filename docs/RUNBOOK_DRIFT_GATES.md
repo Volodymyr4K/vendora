@@ -1,42 +1,36 @@
-# Runbook: Drift gates та raw-read
+# Runbook: Drift gates & raw reads
 
-**Посилання з плану:** [PLATFORM_IMPLEMENTATION_PLAN_PHASED.md](./PLATFORM_IMPLEMENTATION_PLAN_PHASED.md) — Частина A (Drift policy, Raw SQL).
-
-Цей документ збирає операційні деталі для drift-гейтів і політики raw SQL. У плані залишено мінімум і посилання сюди.
+Operational details for the schema drift gates and the raw SQL policy.
 
 ---
 
-## MVP drift (старт)
+## MVP drift (initial scope)
 
-- Перевіряти в CI: **таблиці/колонки, індекси, UNIQUE, FK, NOT NULL**.
-- Allowlist raw-артефактів (partial unique index, expression index тощо): маніфест з owner і expiry; зміна — лише разом із міграцією або drift acceptance record.
+- Check in CI: **tables/columns, indexes, UNIQUE, FK, NOT NULL**.
+- Allowlist of raw artifacts (partial unique indexes, expression indexes, etc.): a manifest with an owner and an expiry; changes only land together with a migration or a drift acceptance record.
 
-## Розширення (після стабілізації)
+## Extensions (after stabilization)
 
-- Fingerprint: `pg_get_indexdef` / `pg_get_constraintdef` / `pg_get_expr`; для expression/predicate — dependency-list (OID) для function, operator, type, collation, opclass, opfamily.
+- Fingerprint: `pg_get_indexdef` / `pg_get_constraintdef` / `pg_get_expr`; for expression/predicate indexes — a dependency list (OIDs) covering function, operator, type, collation, opclass, opfamily.
 - Identity: function `schema.name(argtypes)->return_type`, operator `schema.op(left_type,right_type)->result_type`, type `schema.type`, collation, opclass/opfamily.
-- Casts/domains: у drift-gated expr/predicate — лише явні касти; custom implicit casts заборонені; CI gate по `pg_cast` (castcontext = 'i', не pg_catalog).
-- Не-pg_catalog оператори в expr/predicate — заборонені; функції — schema-qualified.
-- Function body drift: для dependency function поза pg_catalog fingerprint включає function-body hash.
-- Normalisation: тільки whitespace/formatting; schema-qualifier, collation, predicate, expr — частина семантики.
-- Collation: у бізнес-критичних індексах/UNIQUE тільки `C`/`POSIX`; case-insensitive — нормалізована колонка + UNIQUE на ній.
-- Negative tests — лише для механізмів, які реально використовуються в raw DDL проекту.
-
-(Повний текст правил — у PLATFORM_IMPLEMENTATION_PLAN_PHASED.md, Частина A.)
+- Casts/domains: drift-gated expr/predicate may use explicit casts only; custom implicit casts are forbidden; a CI gate over `pg_cast` (castcontext = 'i', excluding pg_catalog).
+- Non-pg_catalog operators in expr/predicate are forbidden; functions must be schema-qualified.
+- Function body drift: for dependency functions outside pg_catalog the fingerprint includes a function-body hash.
+- Normalization: whitespace/formatting only; schema qualifier, collation, predicate and expr are part of the semantics.
+- Collation: business-critical indexes/UNIQUE constraints use `C`/`POSIX` only; case-insensitive lookups go through a normalized column with a UNIQUE constraint on it.
+- Negative tests — only for mechanisms actually used in the project's raw DDL.
 
 ---
 
-## Raw SQL у runtime
+## Raw SQL at runtime
 
-**Мінімум (план):** raw SQL у runtime заборонено; дозволено лише міграції та адмін-скрипти під окремою роллю.
+**Minimum (policy):** raw SQL at runtime is forbidden; only migrations and admin scripts under a dedicated role are allowed.
 
-**Повна політика raw-read (якщо вводити окремий модуль):**
+**Full raw-read policy (if a dedicated module is introduced):**
 
-- Raw writes: завжди заборонені в runtime (lint + CI).
-- Raw reads: лише plain SELECT без lock/side-effects; один контрольований модуль/каталог; заборонені патерни: `FOR UPDATE`, `pg_advisory_lock*`, `nextval(...)`, LOCK TABLE, SET/RESET, тощо.
-- Окремий DSN і read-only DB роль; READ ONLY транзакція або `default_transaction_read_only=on`.
-- Raw-read клієнт не приймає довільний SQL (лише зашиті templates + bind params); whitelist для sort/filter.
-- Session timeouts: statement_timeout, lock_timeout, idle_in_transaction_session_timeout (короткі значення).
-- CI: перевірка, що raw-read DSN ≠ runtime DSN і що read-only роль не має write-прав.
-
-(Деталі — PLATFORM_IMPLEMENTATION_PLAN_PHASED.md, абзац «Raw writes (канонічно)» та далі.)
+- Raw writes: always forbidden at runtime (lint + CI).
+- Raw reads: plain SELECT only, no locks/side effects; a single controlled module/directory; forbidden patterns: `FOR UPDATE`, `pg_advisory_lock*`, `nextval(...)`, LOCK TABLE, SET/RESET, etc.
+- A separate DSN and a read-only DB role; READ ONLY transactions or `default_transaction_read_only=on`.
+- The raw-read client accepts no arbitrary SQL (only built-in templates + bind params); a whitelist for sort/filter.
+- Session timeouts: statement_timeout, lock_timeout, idle_in_transaction_session_timeout (short values).
+- CI: verify that the raw-read DSN differs from the runtime DSN and that the read-only role has no write privileges.

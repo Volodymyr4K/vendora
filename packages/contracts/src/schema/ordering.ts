@@ -2,14 +2,14 @@ import { z } from "zod";
 
 // --- SELF-CONTAINED SCHEMAS (No Import from index.ts) ---
 
-/** CartItemRef — мінімальна позиція у кошику (id + qty) */
+/** CartItemRef — minimal cart line (id + qty) */
 export const zCartItemRef = z.object({
     id: z.string().min(1),
     qty: z.coerce.number().int().positive(),
 });
 
 // Strict phone for input (Creation/Checkout)
-export const zPhone = z.string().regex(/^\+?380\d{9}$/, "Невірний формат. Очікується +380...");
+export const zPhone = z.string().regex(/^\+?380\d{9}$/, "Invalid format. Expected +380...");
 
 // Resilient phone for output (Admin/Views)
 export const zPhoneResilient = z.preprocess((val) => {

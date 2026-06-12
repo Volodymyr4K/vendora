@@ -15,7 +15,7 @@ export default function TestPage() {
                     Tailwind CSS Test
                 </h1>
                 <p className="text-ink text-lg mb-4">
-                    Якщо ви бачите цей текст у білому боксі з фіолетово-рожевим фоном - <strong className="text-success">Tailwind працює!</strong>
+                    If you can see this text in a white box on a purple-pink background - <strong className="text-success">Tailwind works!</strong>
                 </p>
                 <div className="flex gap-4">
                     <Button

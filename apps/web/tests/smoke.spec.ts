@@ -10,7 +10,7 @@ test("no undefined in title for branch page", async ({ page }) => {
 
 test("menu category renders items (no Loading-only)", async ({ page }) => {
   await page.goto(`${STOREFRONT_BRANCH}/menu/sets`);
-  await expect(page.locator("text=грн").first()).toBeVisible();
+  await expect(page.locator("text=UAH").first()).toBeVisible();
 });
 
 function getAccentViaComputedStyle(page: import("@playwright/test").Page): Promise<string> {

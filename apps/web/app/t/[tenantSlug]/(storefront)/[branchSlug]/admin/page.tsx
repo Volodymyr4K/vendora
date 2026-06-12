@@ -70,7 +70,7 @@ export default function AdminDashboardPage({ params }: { params: Promise<{ tenan
         <div style={{ paddingBottom: 50 }}>
             {!canEditDashboard && stats && (
                 <div className="bg-warning-weak text-warning" style={{ padding: "10px 14px", borderRadius: 8, marginBottom: 20, fontSize: 14 }}>
-                    Тільки перегляд: дашборд не має кнопок зміни, лише оновлення даних.
+                    Read-only: this dashboard has no edit actions, data refresh only.
                 </div>
             )}
             {/* Header */}
@@ -98,19 +98,19 @@ export default function AdminDashboardPage({ params }: { params: Promise<{ tenan
                     )}
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 20, marginBottom: 20 }}>
                         <StatCard
-                            label="Виручка (кухня)"
-                            value={`${formatPrice(stats.revenue, true)} грн`}
+                            label="Revenue (kitchen)"
+                            value={`${formatPrice(stats.revenue, true)} UAH`}
                             color="text-success"
                             isBig
                         />
                         <StatCard
-                            label="Доставка"
-                            value={`${formatPrice(stats.deliveryRevenue, true)} грн`}
+                            label="Delivery"
+                            value={`${formatPrice(stats.deliveryRevenue, true)} UAH`}
                             color="text-info"
                         />
                         <StatCard
                             label="Avg Check"
-                            value={`${formatPrice(stats.avgCheck, true)} грн`}
+                            value={`${formatPrice(stats.avgCheck, true)} UAH`}
                         />
                         <div style={{ background: "var(--paper)", padding: 20, borderRadius: 12, border: "1px solid var(--line)" }}>
                             <div style={{ color: "var(--muted)", fontSize: "0.9rem", marginBottom: 5 }}>Orders Today</div>

@@ -19,7 +19,7 @@ export default async function MenuPage({ params }: { params: Promise<{ tenantSlu
 
   return (
     <>
-      <Header title={`Каталог • ${cfg.cityName}`} subtitle="Step 10: повний каталог + кошик" />
+      <Header title={`Catalog • ${cfg.cityName}`} subtitle="Full catalog + cart" />
       <MenuClient branchSlug={cfg.slug} menu={menu} tenantSlug={tenantSlug} />
     </>
   );

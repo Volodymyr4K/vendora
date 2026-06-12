@@ -32,11 +32,11 @@ export default function ErrorBoundary({
       padding: 20
     }}>
       <div className="card" style={{ maxWidth: 400, width: "100%", textAlign: "center" }}>
-        <h2 style={{ marginBottom: 16 }}>Вибачте, виникла технічна помилка 😔</h2>
+        <h2 style={{ marginBottom: 16 }}>Sorry, a technical error occurred 😔</h2>
         <p className="muted" style={{ marginBottom: 24, lineHeight: 1.5 }}>
-          Ми вже працюємо над її виправленням.
+          We are already working on a fix.
           <br />
-          Ви можете оформити замовлення за телефоном:
+          You can place your order by phone:
         </p>
 
         <a href="tel:0800330330" className="btn" style={{ display: "inline-block", width: "100%", marginBottom: 16 }}>
@@ -50,7 +50,7 @@ export default function ErrorBoundary({
           onClick={() => reset()}
           style={{ background: "transparent", color: "inherit", border: "1px solid var(--line)" }}
         >
-          Спробувати ще раз
+          Try again
         </Button>
       </div>
     </div>

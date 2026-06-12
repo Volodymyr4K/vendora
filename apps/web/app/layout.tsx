@@ -15,7 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
       default: "Vendora",
       template: isTenant ? "%s" : "%s • Vendora",
     },
-    description: "Vendora vNext: швидкий каталог, стабільний checkout, прозорі статуси замовлення.",
+    description: "Vendora: fast catalog, reliable checkout, transparent order statuses.",
   };
 }
 

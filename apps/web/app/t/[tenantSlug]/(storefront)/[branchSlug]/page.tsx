@@ -18,7 +18,7 @@ export default async function BranchHome({ params }: { params: Promise<{ tenantS
   const deliveryEnabled = isFeatureEnabled(tenantCfg.features, "basicDelivery", "delivery");
   const delivery = deliveryEnabled
     ? await getDelivery(branchSlug, tenantSlug)
-    : { mode: "fallback" as const, message: "Доставка недоступна для цього закладу." };
+    : { mode: "fallback" as const, message: "Delivery is unavailable for this venue." };
   const locale = tenantSlug === "berlin-press"
     ? (await getAmLocaleForTenant(tenantSlug)).locale
     : undefined;
@@ -28,29 +28,29 @@ export default async function BranchHome({ params }: { params: Promise<{ tenantS
   return (
     <>
       <Header
-        title={`${cfg.cityName}: замовлення онлайн`}
-        subtitle="Каталог → кошик → розрахунок → створення замовлення (demo)"
-        right={<a className="btn" href={storefrontHref(routingContext, "/menu", { explicitBranchSlug: cfg.slug })}>Відкрити каталог</a>}
+        title={`${cfg.cityName}: order online`}
+        subtitle="Catalog → cart → quote → order creation (demo)"
+        right={<a className="btn" href={storefrontHref(routingContext, "/menu", { explicitBranchSlug: cfg.slug })}>Open catalog</a>}
       />
 
       <div className="card">
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <span className="pill"><span className="pillDot" />{formatTodayHours(cfg.workingSchedule)}</span>
-          <span className="pill"><span className="pillDot" />{cfg.address ?? "Адреса"}</span>
-          <span className="pill"><span className="pillDot" />{cfg.phones[0] ?? "Телефон"}</span>
+          <span className="pill"><span className="pillDot" />{cfg.address ?? "Address"}</span>
+          <span className="pill"><span className="pillDot" />{cfg.phones[0] ?? "Phone"}</span>
         </div>
 
         <hr />
 
-        <div style={{ fontWeight: 950, letterSpacing: "-.3px" }}>Доставка</div>
+        <div style={{ fontWeight: 950, letterSpacing: "-.3px" }}>Delivery</div>
         <div className="muted" style={{ marginTop: 6, fontWeight: 800, lineHeight: 1.35 }}>
           {"mode" in delivery && delivery.mode === "fallback" ? (
             delivery.message
           ) : (
             <>
               <>
-                {delivery.cfg.deliveryFee} грн • безкоштовно від {delivery.cfg.freeFrom} грн • ETA {delivery.cfg.etaMin}–{delivery.cfg.etaMax} хв
-                {delivery.cfg.zones?.length ? <><br />Зони: {delivery.cfg.zones.join(", ")}</> : null}
+                {delivery.cfg.deliveryFee} UAH • free from {delivery.cfg.freeFrom} UAH • ETA {delivery.cfg.etaMin}–{delivery.cfg.etaMax} min
+                {delivery.cfg.zones?.length ? <><br />Zones: {delivery.cfg.zones.join(", ")}</> : null}
               </>
             </>
           )}
@@ -60,8 +60,8 @@ export default async function BranchHome({ params }: { params: Promise<{ tenantS
       {hits ? (
         <section style={{ marginTop: 14 }}>
           <div className="card">
-            <h2 className="sectionTitle">Хіти сьогодні</h2>
-            <div className="sectionSub">Кілька позицій, щоб «відчути» продукт у зборці.</div>
+            <h2 className="sectionTitle">Today's bestsellers</h2>
+            <div className="sectionSub">A few items to get a feel for the assembled product.</div>
             <div className="grid3">
               {hits.items.slice(0, 6).map((it: MenuCategoryPayload["items"][number]) => (
                 <div key={it.id} className="card product">
@@ -75,7 +75,7 @@ export default async function BranchHome({ params }: { params: Promise<{ tenantS
                     </a>
                     {it.desc ? <p className="productDesc">{it.desc}</p> : null}
                     <div className="tagRow" style={{ marginTop: 8 }}>
-                      {it.weightG ? <span className="tag">{it.weightG} г</span> : null}
+                      {it.weightG ? <span className="tag">{it.weightG} g</span> : null}
                       {(it.tags || []).slice(0, 2).map((t: string) => (
                         <span key={t} className="tag">{t}</span>
                       ))}
@@ -83,8 +83,8 @@ export default async function BranchHome({ params }: { params: Promise<{ tenantS
                   </div>
                   <div className="priceRow">
                     <div>
-                      <span className="price">{formatPrice(it.price, true)} грн</span>
-                      {it.oldPrice ? <span className="priceOld">{formatPrice(it.oldPrice, true)} грн</span> : null}
+                      <span className="price">{formatPrice(it.price, true)} UAH</span>
+                      {it.oldPrice ? <span className="priceOld">{formatPrice(it.oldPrice, true)} UAH</span> : null}
                     </div>
                     <div style={{ position: "absolute", top: 8, right: 8, zIndex: 10 }}>
                       <FavoriteButton productId={it.id} tenantSlug={tenantSlug} />

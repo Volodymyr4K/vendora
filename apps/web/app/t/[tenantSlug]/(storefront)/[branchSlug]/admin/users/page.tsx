@@ -236,9 +236,9 @@ export default function AdminUsersPage({ params }: { params: Promise<{ tenantSlu
         return (
             <div style={{ padding: 20 }}>
                 <div className="bg-danger-weak border-danger" style={{ padding: 24, border: "1px solid", borderRadius: 8, maxWidth: 480 }}>
-                    <div className="text-danger" style={{ fontWeight: 600 }}>Не вдалося завантажити користувачів</div>
+                    <div className="text-danger" style={{ fontWeight: 600 }}>Failed to load users</div>
                     <p className="text-danger opacity-80" style={{ marginTop: 8, fontSize: 14 }}>
-                        Отримано неочікувану відповідь. Оновіть сторінку або спробуйте ще раз.
+                        Received an unexpected response. Refresh the page or try again.
                     </p>
                     {message && (
                         <div className="bg-danger-weak text-danger" style={{ marginTop: 12, padding: 10, borderRadius: 6, fontSize: 13 }}>
@@ -252,7 +252,7 @@ export default function AdminUsersPage({ params }: { params: Promise<{ tenantSlu
                         style={{ marginTop: 12, padding: "8px 16px", borderRadius: 6, border: "1px solid", cursor: "pointer", fontSize: 14 }}
                         onClick={() => load(tenantSlug)}
                     >
-                        Оновити
+                        Refresh
                     </Button>
                 </div>
             </div>

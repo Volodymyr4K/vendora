@@ -37,7 +37,7 @@ export default async function CheckoutPage({ params }: { params: Promise<{ tenan
 
   return (
     <>
-      <Header title={`Checkout • ${cfg.cityName}`} subtitle={`Філія: ${cfg.slug}`} right={<CartLink branchSlug={cfg.slug} />} />
+      <Header title={`Checkout • ${cfg.cityName}`} subtitle={`Branch: ${cfg.slug}`} right={<CartLink branchSlug={cfg.slug} />} />
       <div className="container mx-auto max-w-lg p-3">
         <SmartCheckout
           branchSlug={cfg.slug}

@@ -7,7 +7,7 @@ export default function DefaultMainTemplate() {
             <div className="card" style={{ marginTop: 16 }}>
                 <div style={{ fontWeight: 900, fontSize: 20 }}>Main</div>
                 <div className="muted" style={{ marginTop: 6 }}>
-                    Стартова сторінка для single‑branch tenant. Далі її можна кастомізувати під потреби.
+                    Landing page for a single-branch tenant. Customize it further as needed.
                 </div>
             </div>
         </>

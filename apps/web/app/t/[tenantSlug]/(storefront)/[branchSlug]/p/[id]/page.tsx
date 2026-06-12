@@ -54,25 +54,25 @@ export default async function ProductPage({ params }: { params: Promise<{ branch
     <>
       <Header
         title={it.title}
-        subtitle={`${cfg.cityName} • деталі позиції (demo)`}
-        right={<a className="btn" href={storefrontHref(routingContext, "/menu", { explicitBranchSlug: cfg.slug })}>Назад до каталогу</a>}
+        subtitle={`${cfg.cityName} • item details (demo)`}
+        right={<a className="btn" href={storefrontHref(routingContext, "/menu", { explicitBranchSlug: cfg.slug })}>Back to catalog</a>}
       />
 
       <div className="card" style={{ display: "grid", gap: 14 }}>
         {it.desc ? <div className="muted" style={{ fontWeight: 800 }}>{it.desc}</div> : null}
 
         <div className="tagRow">
-          {it.weightG ? <span className="tag">{it.weightG} г</span> : null}
+          {it.weightG ? <span className="tag">{it.weightG} g</span> : null}
           {(it.tags || []).map((t: string) => (
             <span key={t} className="tag">{t}</span>
           ))}
-          {it.isAvailable === false ? <span className="tag">немає в наявності</span> : null}
+          {it.isAvailable === false ? <span className="tag">out of stock</span> : null}
         </div>
 
         <div className="row">
           <div>
-            <span className="price">{formatPrice(it.price, true)} грн</span>
-            {it.oldPrice ? <span className="priceOld">{formatPrice(it.oldPrice, true)} грн</span> : null}
+            <span className="price">{formatPrice(it.price, true)} UAH</span>
+            {it.oldPrice ? <span className="priceOld">{formatPrice(it.oldPrice, true)} UAH</span> : null}
           </div>
           <AddToCartButton id={it.id} title={it.title} price={it.price} tenantSlug={tenantSlug} />
         </div>

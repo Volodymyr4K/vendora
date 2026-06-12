@@ -38,17 +38,17 @@ export default async function ProfilePage({ params }: { params: Promise<{ tenant
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                     </div>
-                    <h1 className="text-3xl font-bold mb-3 bg-gradient-to-r from-accent to-accent bg-clip-text text-transparent">Вітаємо!</h1>
-                    <p className="text-muted mb-8 leading-relaxed">Увійдіть в систему, щоб переглянути замовлення та керувати профілем</p>
+                    <h1 className="text-3xl font-bold mb-3 bg-gradient-to-r from-accent to-accent bg-clip-text text-transparent">Welcome!</h1>
+                    <p className="text-muted mb-8 leading-relaxed">Sign in to view your orders and manage your profile</p>
                     <div className="space-y-3">
                         <a
                             href={loginHref}
                             className="block w-full py-4 px-6 bg-gradient-to-r from-accent to-accent text-accent-foreground rounded-theme font-bold hover:shadow-xl hover:scale-[1.02] transition-all duration-300 transform"
                         >
-                            Увійти
+                            Sign in
                         </a>
                         <a href={storefrontHref(routingContext, "/")} className="block text-sm text-muted hover:text-accent transition-colors">
-                            ← Повернутись на головну
+                            ← Back to home
                         </a>
                     </div>
                 </div>
@@ -70,7 +70,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ tenant
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex items-center justify-between gap-4">
                         <h1 className="text-xl font-bold bg-gradient-to-r from-accent to-accent bg-clip-text text-transparent">
-                            Мій Кабінет
+                            My Account
                         </h1>
                         <div className="flex items-center gap-2 flex-wrap sm:gap-3">
                             <a
@@ -80,7 +80,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ tenant
                                 <svg aria-hidden="true" className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                                 </svg>
-                                Головна
+                                Home
                             </a>
                             {profile.lastVisitedBranchSlug ? (
                                 <a
@@ -90,7 +90,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ tenant
                                     <svg aria-hidden="true" className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                                     </svg>
-                                    Каталог
+                                    Catalog
                                 </a>
                             ) : (
                                 <a
@@ -100,7 +100,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ tenant
                                     <svg aria-hidden="true" className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                                     </svg>
-                                    Переглянути каталог
+                                    Browse catalog
                                 </a>
                             )}
                             <a
@@ -111,7 +111,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ tenant
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                 </svg>
-                                Вибрати філію
+                                Choose a branch
                             </a>
                         </div>
                     </div>
@@ -122,9 +122,9 @@ export default async function ProfilePage({ params }: { params: Promise<{ tenant
                 {/* Header */}
                 <div className="mb-12">
                     <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-accent to-accent bg-clip-text text-transparent mb-3">
-                        Мій Кабінет
+                        My Account
                     </h1>
-                    <p className="text-muted text-lg">Керуйте профілем, адресами та замовленнями</p>
+                    <p className="text-muted text-lg">Manage your profile, addresses and orders</p>
                 </div>
 
                 <div className="grid lg:grid-cols-3 gap-8">
@@ -135,7 +135,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ tenant
                             <div className="bg-gradient-to-r from-accent to-accent p-6">
                                 <h2 className="text-xl font-bold text-accent-foreground flex items-center gap-3">
                                     <span className="text-2xl">❤️</span>
-                                    Улюблене
+                                    Favorites
                                 </h2>
                             </div>
                             <div className="p-6">
@@ -143,7 +143,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ tenant
                                     href={tenantHref(routingContext, "/profile/favorites")}
                                     className="block w-full py-3 px-4 bg-accent-weak text-accent rounded-theme hover:opacity-80 transition-all duration-300 font-semibold text-center transform hover:scale-[1.02]"
                                 >
-                                    Переглянути ❤️
+                                    View ❤️
                                 </a>
                             </div>
                         </section>
@@ -155,7 +155,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ tenant
                                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                     </svg>
-                                    Особисті дані
+                                    Personal details
                                 </h2>
                             </div>
                             <div className="p-6">
@@ -174,7 +174,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ tenant
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                     </svg>
-                                    Мої Адреси
+                                    My Addresses
                                 </h2>
                             </div>
                             <div className="p-6">
@@ -189,7 +189,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ tenant
                                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                     </svg>
-                                    Історія Замовлень
+                                    Order History
                                 </h2>
                             </div>
                             <div className="p-6">

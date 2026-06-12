@@ -17,9 +17,9 @@ export function CartLink(props: { branchSlug: string; tenantSlug?: string }) {
     <a
       className="btn"
       href={storefrontHref(routingContext, "/checkout", { explicitBranchSlug: props.branchSlug })}
-      aria-label="Перейти до кошика"
+      aria-label="Go to cart"
     >
-      🧺 Кошик <Badge>{cart.count}</Badge>
+      🧺 Cart <Badge>{cart.count}</Badge>
     </a>
   );
 }
